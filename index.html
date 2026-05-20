@@ -803,38 +803,36 @@ function pClass(p) {
 
 function ryokanCard(r) {
   var rc = RC[r.region] || {name: r.region, color: '#555'};
-  var phoneBtn, searchBtn, tags;
-
-  if (r.phone && r.phone !== '문의 필요') {
-    phoneBtn = '<button class="btn-info" style="flex:1" onclick="callRyokan(' + r.id + ')">📞 전화</button>';
-  } else {
-    phoneBtn = '<button class="btn-info" style="flex:1;background:#aaa;cursor:default">📞 문의 필요</button>';
-  }
-  searchBtn = '<button class="btn-call" onclick="searchRyokan(' + r.id + ')">🔍 검색</button>';
-  tags = r.tags.map(function(t){ return '<span class="tag td">' + t + '</span>'; }).join('');
-
-  return '<div class="card" style="border-left:3px solid #8B4513">'
-    + '<div class="card-main">'
-    + '<div class="card-rank" style="background:#FFF3E0;color:#8B4513;font-size:16px">🏯</div>'
-    + '<div class="card-body">'
-    + '<div class="card-name">' + r.name + '</div>'
-    + '<div class="card-jp">' + r.nameJp + '</div>'
-    + '<div class="ryokan-feature">✦ ' + r.feature + '</div>'
-    + '<div class="card-meta"><span>📍 ' + r.address + '</span></div>'
-    + '<div class="card-tags">'
-    + '<span class="tag td" style="background:' + rc.color + '18;color:' + rc.color + '">' + rc.name + '</span>'
-    + '<span class="price-badge ' + pClass(r.price) + '">' + r.price + '</span>'
-    + tags
-    + '</div></div>'
-    + '<div class="card-right">'
-    + '<div class="rating-n"><span class="rating-s">★</span>' + r.rating + '</div>'
-    + '<div class="rating-c">(' + r.count.toLocaleString() + ')</div>'
-    + '</div></div>'
-    + '<div style="padding:0 15px 14px">'
-    + airportHTML(r.lat, r.lng)
-    + '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">' + r.desc + '</div></div>'
-    + '<div style="display:flex;gap:8px">' + phoneBtn + searchBtn + '</div>'
-    + '</div></div>';
+  var phoneBtn = r.phone && r.phone !== '문의 필요'
+    ? '<button class="btn-info" style="flex:1" onclick="callRyokan(' + r.id + ')">📞 전화</button>'
+    : '<button class="btn-info" style="flex:1;background:#aaa;cursor:default">📞 문의 필요</button>';
+  var searchBtn = '<button class="btn-call" onclick="searchRyokan(' + r.id + ')">🔍 검색</button>';
+  var tags = r.tags.map(function(t){ return '<span class="tag td">' + t + '</span>'; }).join('');
+  var distInfo = airportHTML(r.lat, r.lng);
+  var html = '';
+  html += '<div class="card" style="border-left:3px solid #8B4513">';
+  html += '<div class="card-main">';
+  html += '<div class="card-rank" style="background:#FFF3E0;color:#8B4513;font-size:16px">🏯</div>';
+  html += '<div class="card-body">';
+  html += '<div class="card-name">' + r.name + '</div>';
+  html += '<div class="card-jp">' + r.nameJp + '</div>';
+  html += '<div class="ryokan-feature">✦ ' + r.feature + '</div>';
+  html += '<div class="card-meta"><span>📍 ' + r.address + '</span></div>';
+  html += '<div class="card-tags">';
+  html += '<span class="tag td" style="background:' + rc.color + '18;color:' + rc.color + '">' + rc.name + '</span>';
+  html += '<span class="price-badge ' + pClass(r.price) + '">' + r.price + '</span>';
+  html += tags;
+  html += '</div></div>';
+  html += '<div class="card-right">';
+  html += '<div class="rating-n"><span class="rating-s">★</span>' + r.rating + '</div>';
+  html += '<div class="rating-c">(' + r.count.toLocaleString() + ')</div>';
+  html += '</div></div>';
+  html += '<div style="padding:0 15px 14px">';
+  html += distInfo;
+  html += '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">' + r.desc + '</div></div>';
+  html += '<div style="display:flex;gap:8px">' + phoneBtn + searchBtn + '</div>';
+  html += '</div></div>';
+  return html;
 }
 function renderRyokan() {
   var list = curRF === 'all' ? RYOKANS : RYOKANS.filter(function(r){ return r.region === curRF; });
