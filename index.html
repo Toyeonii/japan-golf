@@ -663,10 +663,10 @@ function openPanel(id){
     '<div class="panel-hd" style="background:'+color+'">'+
     '<h3>'+c.name+'</h3><p>'+c.nameJp+' · '+RC[c.region].name+' · '+c.address+'</p>'+
     '<div class="panel-rat"><span class="prs">★★★★</span><span class="prn">'+c.rating+'</span><span class="prc">('+c.count.toLocaleString()+')</span></div>'+
-    '</div><div class="panel-bd">'+
+    '</div><div class="panel-bd">'
     +airportHTML(c.lat, c.lng)
-    '<div style="margin-bottom:10px">'+diffHTML(c.diff)+'</div>'+
-    '<div class="panel-ig">'+
+    +'<div style="margin-bottom:10px">'+diffHTML(c.diff)+'</div>'+
+    +'<div class="panel-ig">'+
     '<div class="pi"><div class="pil">영업시간</div><div class="piv">'+c.hours.split('/')[0].trim()+'</div></div>'+
     '<div class="pi"><div class="pil">휴무</div><div class="piv">'+c.closed+'</div></div>'+
     '<div class="pi"><div class="pil">전화</div><div class="piv"><a href="tel:'+c.phone+'" style="color:'+color+'">'+c.phone+'</a></div></div>'+
@@ -829,7 +829,7 @@ function ryokanCard(r) {
     + '<div class="rating-n"><span class="rating-s">★</span>' + r.rating + '</div>'
     + '<div class="rating-c">(' + r.count.toLocaleString() + ')</div>'
     + '</div></div>'
-    + '<div style="padding:0 15px 14px">'
+    + '<div style="padding:0 15px 14px">'+
     + airportHTML(r.lat, r.lng)
     + '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">' + r.desc + '</div></div>'
     + '<div style="display:flex;gap:8px">' + phoneBtn + searchBtn + '</div>'
