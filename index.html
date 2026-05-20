@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<!-- v2.1 -->
+<meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>일본 골프 가이드</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;700&family=Bebas+Neue&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<link rel="apple-touch-icon" href="icon.png">
+<style>
+:root{--green:#1a5c3a;--green-l:#2d8c5a;--green-pale:#e8f5ed;--gold:#c9a84c;--gold-l:#f0d080;--bg:#f7f5f0;--w:#fff;--g1:#1a1a1a;--g2:#555;--g3:#999;--g4:#e0ddd7;--r:14px;--sh:0 4px 20px rgba(0,0,0,.09)}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--g1);min-height:100vh}
+
+.header{background:var(--green);padding:0 16px;position:sticky;top:0;z-index:500;box-shadow:0 2px 12px rgba(0,0,0,.2)}
+.header-inner{max-width:960px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;height:56px}
+.logo{font-family:'Bebas Neue',sans-serif;font-size:20px;letter-spacing:2px;color:var(--gold-l);line-height:1}
+.logo span{color:rgba(255,255,255,.75);font-size:11px;font-family:'Noto Sans KR',sans-serif;font-weight:300;letter-spacing:0;display:block;margin-top:1px}
+.fav-btn-h{background:rgba(255,255,255,.15);border-radius:20px;padding:4px 10px;font-size:12px;color:white;cursor:pointer;border:none;font-family:'Noto Sans KR',sans-serif}
+.fav-btn-h.active{background:#e74c3c}
+
+.hero{background:linear-gradient(135deg,var(--green) 0%,#0e3d28 100%);color:white;padding:24px 16px 28px;text-align:center}
+.hero-tag{display:inline-block;background:var(--gold);color:#1a1a1a;font-size:11px;font-weight:700;letter-spacing:1.5px;padding:4px 12px;border-radius:20px;margin-bottom:10px}
+.hero h2{font-size:clamp(18px,5vw,26px);font-weight:300;line-height:1.4;margin-bottom:6px}
+.hero h2 strong{font-weight:700}
+.hero p{font-size:12px;color:rgba(255,255,255,.65);margin-bottom:18px}
+.search-bar{display:flex;background:white;border-radius:50px;overflow:hidden;max-width:440px;margin:0 auto;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.search-bar input{flex:1;border:none;outline:none;padding:11px 16px;font-size:14px;color:var(--g1);font-family:'Noto Sans KR',sans-serif;background:transparent}
+.search-bar button{background:var(--gold);border:none;padding:0 18px;font-size:18px;cursor:pointer}
+
+.stats-bar{background:var(--green);color:white;display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid rgba(255,255,255,.1)}
+.stat{text-align:center;padding:10px 6px;border-right:1px solid rgba(255,255,255,.12)}
+.stat:last-child{border-right:none}
+.stat-num{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--gold-l);letter-spacing:1px}
+.stat-label{font-size:10px;color:rgba(255,255,255,.65)}
+
+.tab-wrap{background:white;border-bottom:1px solid var(--g4);position:sticky;top:56px;z-index:400}
+.tab-inner{max-width:960px;margin:0 auto;display:flex}
+.tab-btn{flex:1;padding:12px;text-align:center;font-size:13px;font-family:'Noto Sans KR',sans-serif;font-weight:500;color:var(--g3);border:none;background:transparent;cursor:pointer;border-bottom:2.5px solid transparent;transition:all .15s}
+.tab-btn.active{color:var(--green);border-bottom-color:var(--green)}
+
+.filters-wrap{background:white;border-bottom:1px solid var(--g4)}
+.filters-scroll{max-width:960px;margin:0 auto;padding:8px 14px;display:flex;gap:7px;overflow-x:auto;scrollbar-width:none}
+.filters-scroll::-webkit-scrollbar{display:none}
+.fb{white-space:nowrap;border:1.5px solid var(--g4);background:transparent;border-radius:50px;padding:5px 13px;font-size:12px;font-family:'Noto Sans KR',sans-serif;color:var(--g2);cursor:pointer;transition:all .15s}
+.fb.active{background:var(--green);border-color:var(--green);color:white;font-weight:500}
+.fb:hover:not(.active){border-color:var(--green);color:var(--green)}
+
+.list-view,.fav-view{display:none}
+.map-view{display:none}
+.list-view.show,.fav-view.show,.map-view.show{display:block}
+
+.main{max-width:960px;margin:0 auto;padding:16px 14px 40px}
+.section-title{font-size:12px;color:var(--g3);margin-bottom:12px}
+.course-list{display:flex;flex-direction:column;gap:10px}
+
+.card{background:white;border-radius:var(--r);box-shadow:var(--sh);overflow:hidden;cursor:pointer;border:1.5px solid transparent;transition:transform .15s,box-shadow .15s}
+.card:hover{transform:translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.12)}
+.card.open{border-color:var(--green)}
+.card-main{padding:13px 15px;display:flex;gap:12px;align-items:flex-start}
+.card-rank{width:30px;height:30px;border-radius:50%;background:var(--green-pale);color:var(--green);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-rank.gold{background:#fdf4dc;color:var(--gold)}
+.card-body{flex:1;min-width:0}
+.card-name{font-size:14px;font-weight:700;color:var(--g1);margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.card-jp{font-size:10px;color:var(--g3);margin-bottom:5px}
+.card-meta{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:5px}
+.card-meta span{font-size:11px;color:var(--g2)}
+.card-tags{display:flex;gap:4px;flex-wrap:wrap}
+.tag{font-size:10px;padding:2px 8px;border-radius:10px}
+.td{background:#f0f0ec;color:var(--g2)}
+.tg{background:var(--green-pale);color:var(--green);font-weight:500}
+.to{background:#fdf4dc;color:#8a6b1a;font-weight:500}
+.card-right{text-align:right;flex-shrink:0;display:flex;flex-direction:column;align-items:flex-end;gap:4px}
+.rating-n{font-size:18px;font-weight:700;color:var(--g1)}
+.rating-s{color:var(--gold)}
+.rating-c{font-size:10px;color:var(--g3)}
+.card-arrow{font-size:14px;color:var(--g3);transition:transform .2s}
+.card.open .card-arrow{transform:rotate(180deg);color:var(--green)}
+.fav-icon{font-size:18px;cursor:pointer;background:none;border:none;line-height:1;padding:2px;transition:transform .15s}
+.fav-icon:hover{transform:scale(1.2)}
+
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:5px}
+.badge{font-size:10px;padding:2px 7px;border-radius:6px;font-weight:500}
+.bh{background:#e8f4fd;color:#1565c0}
+.bf{background:#fdf4dc;color:#8a6b1a}
+.diff-stars{display:flex;gap:2px}
+.ds{font-size:11px}.ds.on{color:var(--gold)}.ds.off{color:#ddd}
+
+.card-detail{display:none;border-top:1px solid var(--g4)}
+.card.open .card-detail{display:block}
+.detail-grid{display:grid;grid-template-columns:1fr 1fr}
+.dc{padding:10px 15px;border-bottom:1px solid var(--g4);border-right:1px solid var(--g4)}
+.dc:nth-child(even){border-right:none}
+.dc:nth-last-child(-n+2){border-bottom:none}
+.dl{font-size:10px;color:var(--g3);margin-bottom:3px}
+.dv{font-size:12px;color:var(--g1);font-weight:500}
+.dv a{color:var(--green);text-decoration:none}
+.hbox{margin:12px 15px;background:var(--green-pale);border-radius:10px;padding:11px 13px;border-left:3px solid var(--green)}
+.hl{font-size:10px;color:var(--green);font-weight:700;margin-bottom:4px}
+.ht{font-size:12px;color:var(--g2);line-height:1.7}
+.tbox{margin:0 15px 12px;background:#fdf4dc;border-radius:10px;padding:11px 13px;border-left:3px solid var(--gold)}
+.tl{font-size:10px;color:#8a6b1a;font-weight:700;margin-bottom:4px}
+.tt{font-size:12px;color:#5a4010;line-height:1.65}
+.card-actions{padding:12px 15px;display:flex;gap:8px}
+.btn-info{flex:1;background:var(--green);color:white;border:none;border-radius:10px;padding:11px;font-size:13px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.btn-call{background:white;color:var(--green);border:1.5px solid var(--green);border-radius:10px;padding:11px 14px;font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;white-space:nowrap}
+
+/* 지도 */
+.map-container{position:relative}
+#map{height:calc(100vh - 185px);min-height:500px;width:100%}
+.cluster-marker{border-radius:50%;display:flex;flex-direction:column;align-items:center;justify-content:center;color:white;font-family:'Noto Sans KR',sans-serif;box-shadow:0 4px 16px rgba(0,0,0,.35);cursor:pointer;transition:transform .2s;text-align:center;border:3px solid rgba(255,255,255,.9)}
+.cluster-marker:hover{transform:scale(1.1)}
+.cm-count{font-size:20px;font-weight:700;line-height:1}
+.cm-name{font-size:9px;font-weight:700;opacity:.92;margin-top:2px}
+.golf-marker{border-radius:50%;width:34px;height:34px;display:flex;align-items:center;justify-content:center;color:white;font-family:'Noto Sans KR',sans-serif;font-size:10px;font-weight:700;box-shadow:0 2px 8px rgba(0,0,0,.3);cursor:pointer;transition:transform .15s}
+.golf-marker:hover{transform:scale(1.2)}
+.map-back-btn{position:absolute;top:12px;left:12px;z-index:1001;background:white;border:none;border-radius:50px;padding:7px 14px;font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:700;color:var(--green);box-shadow:var(--sh);cursor:pointer;display:none;align-items:center;gap:5px}
+.map-back-btn.show{display:flex}
+.map-toggle{position:absolute;top:12px;right:12px;z-index:1001;display:flex;background:white;border-radius:50px;box-shadow:var(--sh);overflow:hidden}
+.map-toggle-btn{border:none;padding:7px 14px;font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:700;color:var(--g2);background:transparent;cursor:pointer;transition:all .15s}
+.map-toggle-btn.active{background:var(--green);color:white}
+.map-toggle-btn.active.ryokan-active{background:#8B4513}
+.airport-marker{border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#1565c0;color:white;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;border:2.5px solid white;transition:transform .15s}
+.airport-marker:hover{transform:scale(1.15)}
+.region-banner{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1001;background:white;border-radius:50px;padding:6px 16px;font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:700;box-shadow:var(--sh);display:none;white-space:nowrap}
+.region-banner.show{display:block}
+.map-legend{position:absolute;bottom:20px;left:14px;z-index:1000;background:white;border-radius:10px;padding:10px 13px;box-shadow:var(--sh);font-size:11px}
+.li{display:flex;align-items:center;gap:7px;margin-bottom:4px;color:var(--g2)}
+.li:last-child{margin-bottom:0}
+.ld{width:13px;height:13px;border-radius:50%;flex-shrink:0}
+
+/* 지도 패널 */
+.map-panel{position:absolute;top:0;right:0;width:310px;height:100%;background:white;box-shadow:-4px 0 20px rgba(0,0,0,.12);z-index:1000;overflow-y:scroll;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .3s ease}
+.map-panel.open{transform:translateX(0)}
+.panel-close{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;z-index:10}
+.panel-hd{color:white;padding:16px 40px 13px 16px}
+.panel-hd h3{font-size:14px;font-weight:700;margin-bottom:3px;line-height:1.3}
+.panel-hd p{font-size:11px;color:rgba(255,255,255,.75)}
+.panel-rat{display:flex;align-items:center;gap:5px;margin-top:7px}
+.panel-rat .prs{color:var(--gold-l);font-size:12px}
+.panel-rat .prn{font-size:15px;font-weight:700}
+.panel-rat .prc{font-size:11px;color:rgba(255,255,255,.65)}
+.panel-bd{padding:14px}
+.panel-ig{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:12px}
+.pi{background:var(--bg);border-radius:8px;padding:8px 10px}
+.pil{font-size:10px;color:var(--g3);margin-bottom:2px}
+.piv{font-size:11px;color:var(--g1);font-weight:500}
+.panel-sec{margin-bottom:12px}
+.panel-sec-t{font-size:10px;color:var(--green);font-weight:700;margin-bottom:5px}
+.panel-sec p{font-size:12px;color:var(--g2);line-height:1.65}
+.panel-acts{display:flex;gap:7px}
+.pb1{flex:1;color:white;border:none;border-radius:10px;padding:11px;font-size:12px;font-weight:700;font-family:'Noto Sans KR',sans-serif;cursor:pointer}
+.pb2{background:white;border-radius:10px;padding:11px 12px;font-size:12px;font-family:'Noto Sans KR',sans-serif;cursor:pointer;border:1.5px solid}
+
+/* 모달 */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:2000;padding:20px 14px;overflow-y:auto}
+.modal-bg.show{display:flex;align-items:flex-start;justify-content:center}
+.modal{background:white;border-radius:18px;width:100%;max-width:460px;margin:auto;overflow:hidden;animation:slideUp .25s ease}
+@keyframes slideUp{from{transform:translateY(30px);opacity:0}to{transform:translateY(0);opacity:1}}
+.modal-hd{background:var(--green);color:white;padding:18px}
+.modal-hd h3{font-size:16px;font-weight:700;margin-bottom:3px}
+.modal-hd p{font-size:11px;color:rgba(255,255,255,.7)}
+.modal-bd{padding:18px}
+.info-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.ig-item{border-radius:10px;padding:12px}
+.ig-l{font-size:10px;font-weight:700;margin-bottom:4px}
+.ig-v{font-size:13px;font-weight:700}
+.ig-v a{color:inherit;text-decoration:none}
+.modal-acts{display:flex;gap:8px;padding:0 18px 18px}
+.btn-close{background:transparent;border:1.5px solid var(--g4);border-radius:10px;padding:11px 16px;font-family:'Noto Sans KR',sans-serif;font-size:13px;color:var(--g2);cursor:pointer}
+.btn-call2{flex:1;background:var(--green);border:none;color:white;border-radius:10px;padding:11px;font-family:'Noto Sans KR',sans-serif;font-size:13px;font-weight:700;cursor:pointer}
+
+.fav-empty{text-align:center;padding:60px 20px;color:var(--g3);font-size:14px}
+.fav-empty span{font-size:40px;display:block;margin-bottom:12px}
+
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(60px);background:var(--g1);color:white;padding:10px 20px;border-radius:50px;font-size:12px;z-index:3000;transition:transform .3s;white-space:nowrap;pointer-events:none}
+.toast.show{transform:translateX(-50%) translateY(0)}
+footer{background:var(--green);color:rgba(255,255,255,.6);text-align:center;padding:16px;font-size:11px;line-height:1.9}
+footer strong{color:var(--gold-l)}
+
+@media(max-width:600px){
+  .map-panel{width:100%;height:60%;top:auto;bottom:0;right:0;transform:translateY(100%);box-shadow:0 -4px 20px rgba(0,0,0,.15);border-radius:18px 18px 0 0}
+  .map-panel.open{transform:translateY(0)}
+}
+@media(max-width:480px){
+  .detail-grid{grid-template-columns:1fr}
+  .dc{border-right:none!important;border-bottom:1px solid var(--g4)!important}
+  .dc:last-child{border-bottom:none!important}
+  .info-grid{grid-template-columns:1fr}
+}
+
+.price-badge{display:inline-block;font-size:10px;padding:2px 8px;border-radius:10px;font-weight:700;margin-right:4px}
+.price-low{background:#e8f5ed;color:#1a5c3a}.price-mid{background:#e8f4fd;color:#1565c0}
+.price-high{background:#fdf4dc;color:#8a6b1a}.price-premium{background:#fce4ec;color:#c62828}
+.ryokan-feature{font-size:11px;color:#8B4513;font-weight:600;margin-bottom:4px}
+</style>
+</head>
+<body>
+<header class="header">
+  <div class="header-inner">
+    <div class="logo">JAPAN GOLF GUIDE<span>일본 골프 정보 가이드</span></div>
+    <button class="fav-btn-h" id="favBtnH" onclick="switchTab('fav')">❤️ 즐겨찾기 <span id="favNum">0</span></button>
+  </div>
+</header>
+
+<div class="hero">
+  <div class="hero-tag">⛳ Japan Golf Guide</div>
+  <h2>일본 전국 <strong>골프코스</strong> 정보</h2>
+  <p>구마모토 20개 포함 · 94개 코스 · 그린피 · 난이도 · 2단계 지도</p>
+  <div class="search-bar">
+    <input type="text" id="searchInput" placeholder="코스명, 지역, 특징 검색..." oninput="render()">
+    <button onclick="render()">🔍</button>
+  </div>
+</div>
+
+<div class="stats-bar">
+  <div class="stat"><div class="stat-num" id="statTotal">94</div><div class="stat-label">등록 코스</div></div>
+  <div class="stat"><div class="stat-num">10</div><div class="stat-label">지역</div></div>
+  <div class="stat"><div class="stat-num">4.1</div><div class="stat-label">평균 평점</div></div>
+  <div class="stat"><div class="stat-num" id="statFav">0</div><div class="stat-label">즐겨찾기</div></div>
+</div>
+
+<div class="tab-wrap">
+  <div class="tab-inner">
+    <button class="tab-btn active" id="tabList" onclick="switchTab('list')">📋 목록</button>
+    <button class="tab-btn" id="tabMap" onclick="switchTab('map')">🗺 지도</button>
+    <button class="tab-btn" id="tabFav" onclick="switchTab('fav')">❤️ 즐겨찾기</button>
+    <button class="tab-btn" id="tabRyokan" onclick="switchTab('ryokan')">🏯 료칸</button>
+  </div>
+</div>
+
+<div class="filters-wrap" id="filtersWrap">
+  <div class="filters-scroll">
+    <button class="fb active" onclick="setFilter('all',this)">전체</button>
+    <button class="fb" onclick="setFilter('kumamoto',this)">🌿 구마모토</button>
+    <button class="fb" onclick="setFilter('hokkaido',this)">🏔 홋카이도</button>
+    <button class="fb" onclick="setFilter('tohoku',this)">🌸 도호쿠</button>
+    <button class="fb" onclick="setFilter('kanto',this)">🗼 관동</button>
+    <button class="fb" onclick="setFilter('chubu',this)">🗻 주부</button>
+    <button class="fb" onclick="setFilter('kinki',this)">⛩ 긴키</button>
+    <button class="fb" onclick="setFilter('chugoku',this)">🌊 주고쿠</button>
+    <button class="fb" onclick="setFilter('shikoku',this)">🍊 시코쿠</button>
+    <button class="fb" onclick="setFilter('kyushu',this)">🌋 규슈</button>
+    <button class="fb" onclick="setFilter('okinawa',this)">🌺 오키나와</button>
+    <button class="fb" onclick="setFilter('top',this)">⭐ 4.3+</button>
+    <button class="fb" onclick="setFilter('easy',this)">🟢 초급</button>
+    <button class="fb" onclick="setFilter('hard',this)">🔴 고급</button>
+    <button class="fb" onclick="setFilter('korean',this)">🇰🇷 한국어</button>
+  </div>
+</div>
+
+<div class="list-view show" id="listView">
+  <main class="main">
+    <p class="section-title" id="resultCount">94개 코스</p>
+    <div class="course-list" id="courseList"></div>
+  </main>
+  <footer><strong>일본 골프 정보 가이드</strong><br>실제 예약은 각 골프장에 직접 전화 문의 · 2025년 기준</footer>
+</div>
+
+<div class="map-view" id="mapView">
+  <div class="map-container">
+    <div id="map"></div>
+    <button class="map-back-btn" id="mapBackBtn" onclick="showClusters()">← 전체 지역</button>
+    <div class="map-toggle">
+      <button class="map-toggle-btn active" id="toggleGolf" onclick="setMapMode('golf')">⛳ 골프장</button>
+      <button class="map-toggle-btn" id="toggleRyokan" onclick="setMapMode('ryokan')">🏯 료칸</button>
+    </div>
+    <div class="region-banner" id="regionBanner"></div>
+    <div class="map-legend" id="mapLegend">
+      <div class="li"><div class="ld" style="background:#c9a84c"></div>평점 4.4+</div>
+      <div class="li"><div class="ld" style="background:#e53935"></div>평점 4.2~4.3</div>
+      <div class="li"><div class="ld" style="background:#1a5c3a"></div>평점 4.1 이하</div>
+    </div>
+    <div class="map-legend" id="ryokanLegend" style="display:none">
+      <div class="li"><div class="ld" style="background:#8B4513"></div>최고급/고급</div>
+      <div class="li"><div class="ld" style="background:#D2691E"></div>중급</div>
+      <div class="li"><div class="ld" style="background:#A0522D"></div>저렴</div>
+    </div>
+    <div class="map-panel" id="mapPanel">
+      <button class="panel-close" onclick="closePanel()">✕</button>
+      <div id="panelContent"></div>
+    </div>
+  </div>
+</div>
+
+<div class="fav-view" id="favView">
+  <main class="main">
+    <p class="section-title" id="favCount2">즐겨찾기 0개</p>
+    <div class="course-list" id="favList"></div>
+    <div class="fav-empty" id="favEmpty"><span>💚</span>하트 버튼으로 즐겨찾기 추가</div>
+  </main>
+</div>
+
+<div class="list-view" id="ryokanView">
+  <main class="main">
+    <div style="background:linear-gradient(135deg,#8B4513 0%,#5C2D0A 100%);color:white;border-radius:14px;padding:16px;margin-bottom:16px;text-align:center">
+      <div style="font-size:20px;margin-bottom:4px">🏯 일본 전통 료칸 가이드</div>
+      <div style="font-size:12px;opacity:.8">지역별 추천 료칸 · 온천·가이세키·숙박 정보</div>
+    </div>
+    <div class="filters-scroll" style="margin-bottom:14px;padding:0">
+      <button class="fb active" onclick="setRyokanFilter('all',this)">전체</button>
+      <button class="fb" onclick="setRyokanFilter('kumamoto',this)">🌿 구마모토</button>
+      <button class="fb" onclick="setRyokanFilter('hokkaido',this)">🏔 홋카이도</button>
+      <button class="fb" onclick="setRyokanFilter('tohoku',this)">🌸 도호쿠</button>
+      <button class="fb" onclick="setRyokanFilter('kanto',this)">🗼 관동</button>
+      <button class="fb" onclick="setRyokanFilter('chubu',this)">🗻 주부</button>
+      <button class="fb" onclick="setRyokanFilter('kinki',this)">⛩ 긴키</button>
+      <button class="fb" onclick="setRyokanFilter('chugoku',this)">🌊 주고쿠</button>
+      <button class="fb" onclick="setRyokanFilter('shikoku',this)">🍊 시코쿠</button>
+      <button class="fb" onclick="setRyokanFilter('kyushu',this)">🌋 규슈</button>
+      <button class="fb" onclick="setRyokanFilter('okinawa',this)">🌺 오키나와</button>
+    </div>
+    <p class="section-title" id="ryokanCount">28개 료칸</p>
+    <div class="course-list" id="ryokanList"></div>
+  </main>
+  <footer><strong>일본 료칸 가이드</strong><br>실제 예약은 각 료칸에 직접 문의하세요 · 2025년 기준</footer>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="bgClick(event)">
+  <div class="modal">
+    <div class="modal-hd" id="mHd"></div>
+    <div class="modal-bd" id="mBd"></div>
+    <div class="modal-acts" id="mActs"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const RC={
+  kumamoto:{name:'구마모토',color:'#2e7d32'},
+  hokkaido:{name:'홋카이도',color:'#1565c0'},
+  tohoku:{name:'도호쿠',color:'#6a1b9a'},
+  kanto:{name:'관동',color:'#bf360c'},
+  chubu:{name:'주부',color:'#00695c'},
+  kinki:{name:'긴키',color:'#558b2f'},
+  chugoku:{name:'주고쿠',color:'#4527a0'},
+  shikoku:{name:'시코쿠',color:'#e65100'},
+  kyushu:{name:'규슈',color:'#1a5c3a'},
+  okinawa:{name:'오키나와',color:'#0097a7'}
+};
+const REGION_CENTER={
+  kumamoto:[32.8,130.9],hokkaido:[43.5,142.5],tohoku:[38.5,140.8],
+  kanto:[35.8,139.6],chubu:[35.5,137.2],kinki:[34.7,135.5],
+  chugoku:[34.5,132.5],shikoku:[33.7,133.5],kyushu:[32.5,130.8],okinawa:[26.3,127.8]
+};
+</script>
+<script>
+const COURSES=[
+  {id:1,region:'kumamoto',rank:'gold',name:"구마모토 센트럴 컨트리클럽",nameJp:"熊本中央カントリークラブ",lat:32.9082495,lng:130.8292579,rating:4.2,count:412,address:"기쿠치시",phone:"+81-96-293-3300",hours:"화~일 07:30–18:00",closed:"월요일 휴무",korean:false,holes:18,par:72,fee:"12,000~",diff:2,desc:"구마모토 명문 코스. 평탄한 페어웨이·완벽한 그린 관리. 드라이빙 레인지 완비.",tips:"주말 2주 전 예약 필수. 월요일 휴무. 런치 추천.",tags:["18홀", "평탄", "드라이빙레인지"],tagTypes:["default", "green", "default"]},
+  {id:2,region:'kumamoto',rank:'gold',name:"아소 리조트 그랑비리오",nameJp:"阿蘇リゾートグランヴィリオGC",lat:32.9124099,lng:131.0167391,rating:4.2,count:762,address:"아소시 아카미즈",phone:"+81-967-35-2111",hours:"07:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"15,000~",diff:3,desc:"아소산 절경 리조트 코스. 숙박+라운드 패키지 이용 가능. 한국·대만 투어 그룹 인기.",tips:"숙박 패키지가 단품보다 저렴. 주말 한국·대만 투어 많음.",tags:["18홀", "아소 절경", "리조트"],tagTypes:["default", "gold", "green"]},
+  {id:3,region:'kumamoto',rank:'default',name:"구마모토 쿠코 컨트리클럽",nameJp:"熊本空港カントリークラブ",lat:32.8389205,lng:130.8387145,rating:4.1,count:456,address:"기쿠요초",phone:"+81-96-232-0123",hours:"07:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"13,000~",diff:3,desc:"JLPGA 토너먼트 개최 챔피언십 코스. 공항 옆 위치.",tips:"공항 인접. 비행기 이착륙 관람 가능.",tags:["18홀", "JLPGA", "챔피언십"],tagTypes:["default", "gold", "gold"]},
+  {id:4,region:'kumamoto',rank:'default',name:"아소 그린힐 컨트리클럽",nameJp:"阿蘇グリーンヒルCC",lat:32.8563889,lng:130.9466667,rating:4.1,count:292,address:"아소군 니시하라무라",phone:"+81-96-279-2888",hours:"07:00–17:00",closed:"연중무휴",korean:true,holes:18,par:72,fee:"10,000~",diff:2,desc:"한국어 캐디 상주. 아소 자연 경관 뛰어남. 합리적인 요금.",tips:"한국어 캐디 예약 시 미리 요청. 런치박스 미리 주문 추천.",tags:["18홀", "한국어 캐디", "가성비"],tagTypes:["default", "green", "gold"]},
+  {id:5,region:'kumamoto',rank:'gold',name:"햐카엔 골프 코스",nameJp:"百花苑ゴルフコース",lat:32.900136,lng:130.760517,rating:4.2,count:170,address:"고시시 아이오이",phone:"+81-96-242-0054",hours:"06:00–16:30",closed:"연중무휴",korean:false,holes:18,par:64,fee:"5,000~",diff:1,desc:"파64 쇼트코스. 요금 대비 그린 품질 우수. 이른 아침 6시부터 플레이 가능.",tips:"예약 없이 당일 현장 등록. 손수레 이용 코스. 첫 방문 시 카드 발급 필요.",tags:["파64 쇼트코스", "예약불필요", "저렴"],tagTypes:["gold", "green", "gold"]},
+  {id:6,region:'kumamoto',rank:'default',name:"구마모토 골프 구락부 죠난",nameJp:"熊本ゴルフ倶楽部城南コース",lat:32.6667963,lng:130.7372224,rating:4.0,count:278,address:"미나미구 후지야마",phone:"+81-964-28-6511",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"7,000~",diff:2,desc:"9홀 A/B 그린 방식 경제적 셀프플레이. 시내 근접.",tips:"레스토랑 없으므로 점심 준비 필요.",tags:["9홀×2", "셀프플레이", "저렴"],tagTypes:["default", "default", "gold"]},
+  {id:7,region:'kumamoto',rank:'default',name:"타카유바루 컨트리클럽",nameJp:"高遊原カントリークラブ",lat:32.8221282,lng:130.8381042,rating:3.9,count:253,address:"마시키초",phone:"+81-96-380-5515",hours:"평일 07:30–17:00 / 주말 06:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"50년 역사 전통 코스. 베테랑 캐디 상주. 공항 인근.",tips:"캐디 퀄리티 높음. 티하우스 오리 소바 별미.",tags:["18홀", "캐디 선택", "50년 역사"],tagTypes:["default", "green", "default"]},
+  {id:8,region:'kumamoto',rank:'default',name:"구마모토 미나미 컨트리클럽",nameJp:"熊本南カントリークラブ",lat:32.6727333,lng:130.7856445,rating:3.8,count:234,address:"가미마시키군 고사",phone:"+81-96-234-3838",hours:"문의 필요",closed:"문의 필요",korean:false,holes:18,par:72,fee:"10,000~",diff:4,desc:"산비탈 기복 심한 고난이도 코스. 스테이크하우스 레스토랑 운영.",tips:"초보자에게 체력 부담 있음. 스테이크·탄탄멘이 인기 메뉴.",tags:["18홀", "고난이도", "스테이크하우스"],tagTypes:["default", "gold", "default"]},
+  {id:9,region:'kumamoto',rank:'gold',name:"아쓰마루 아소 아카미즈 GC",nameJp:"あつまる阿蘇赤水GC",lat:32.9107056,lng:131.0054602,rating:4.2,count:261,address:"아소시 아카미즈",phone:"+81-967-35-1200",hours:"연중무휴",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"브리지스톤 오픈 개최 명문 코스. 아소산 전망 광활한 페어웨이. 90실 숙박시설 완비.",tips:"숙박+골프 패키지 강력 추천. 아카미즈역 바로 앞 접근 편리.",tags:["18홀", "브리지스톤 오픈", "숙박 완비"],tagTypes:["default", "gold", "green"]},
+  {id:10,region:'kumamoto',rank:'gold',name:"구마모토 아소 칸토리 유노타니",nameJp:"熊本ASO観光CC湯の谷",lat:32.8915196,lng:131.0266701,rating:4.1,count:188,address:"미나미아소무라 가와요",phone:"+81-967-67-0321",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"11,000~",diff:4,desc:"70년 이상 역사. 일본 100대 코스 선정. 나카다케 화구 기슭 기복 심한 다이나믹 코스.",tips:"기복 심해 체력 소모 많음. 드래프트 맥주 맛있다는 후기 다수.",tags:["18홀", "일본 100대", "70년 역사"],tagTypes:["default", "gold", "gold"]},
+  {id:11,region:'kumamoto',rank:'default',name:"야쓰시로 골프클럽",nameJp:"八代ゴルフ倶楽部",lat:32.3933867,lng:130.563556,rating:4.1,count:171,address:"야쓰시로시",phone:"+81-965-38-9800",hours:"08:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"6,900~",diff:2,desc:"런치 포함 6,900엔 가성비. 2,600엔 대형 스테이크 명물. 온천 併設.",tips:"런치 포함 플랜 추천. 스테이크 반드시 시도. 온천은 비 골퍼도 이용 가능.",tags:["18홀", "온천", "스테이크 명물"],tagTypes:["default", "green", "gold"]},
+  {id:12,region:'kumamoto',rank:'default',name:"아소즈 골프클럽",nameJp:"阿蘇大津ゴルフ倶楽部",lat:32.8808414,lng:130.9308338,rating:3.9,count:564,address:"기쿠치군 오즈마치",phone:"+81-96-293-1500",hours:"09:00–18:00",closed:"연중무휴",korean:true,holes:36,par:144,fee:"7,300~",diff:2,desc:"한국어 스태프 상주. 36홀 하루 2라운드 가능. 규슈의 오거스타로 불리는 명코스.",tips:"한국어 직원 상주. 36홀 풀 플레이 가능. 봄 성수기 웨이팅 있음.",tags:["36홀", "한국어 스태프", "규슈의 오거스타"],tagTypes:["default", "green", "gold"]},
+  {id:13,region:'kumamoto',rank:'default',name:"히고 선밸리 컨트리클럽",nameJp:"肥後サンバレーCC",lat:32.8591194,lng:130.9269394,rating:3.9,count:225,address:"아소군 니시하라무라",phone:"+81-96-293-7111",hours:"평일 07:00–17:00 / 주말 06:30–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"8,000~",diff:2,desc:"한국 메뉴 제공. 말고기 덮밥·짬뽕이 명물. 아소 전망 탁월.",tips:"말고기 덮밥(바사시동) 필수 주문. 한국 메뉴 있어 주문 편함.",tags:["18홀", "한국 메뉴", "말고기 덮밥"],tagTypes:["default", "green", "gold"]},
+  {id:14,region:'kumamoto',rank:'default',name:"미나미아소 컨트리클럽",nameJp:"南阿蘇カントリークラブ",lat:32.8207904,lng:131.016639,rating:4.0,count:273,address:"아소군 미나미아소무라",phone:"+81-967-67-2345",hours:"07:00–17:30",closed:"연중무휴",korean:false,holes:18,par:72,fee:"8,500~",diff:2,desc:"아소 전망 코스. 런치 뷔페 제공. 합리적 요금.",tips:"런치 뷔페 가성비 좋음. 목욕탕·락커 무료.",tags:["18홀", "아소 전망", "뷔페"],tagTypes:["default", "gold", "green"]},
+  {id:15,region:'kumamoto',rank:'gold',name:"코스기 리조트 아소 하이랜드",nameJp:"小杉リゾートASO Highland GC",lat:32.9338659,lng:131.0405846,rating:4.1,count:436,address:"아소시 오토히메",phone:"+81-967-32-5500",hours:"08:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:3,desc:"아소 하이랜드 리조트 코스. 스루 플레이로 빠른 라운드 가능. 잔디 관리 우수.",tips:"쉬는 시간 없는 스루 플레이. 현금 준비 필수. 솔로 플레이 가능.",tags:["18홀", "스루 플레이", "리조트"],tagTypes:["default", "green", "gold"]},
+  {id:16,region:'kumamoto',rank:'default',name:"ASO 스카이블루 골프 리조트",nameJp:"ASO SKY BLUE GOLF RESORT",lat:32.8592773,lng:131.1749876,rating:3.8,count:149,address:"아소군 다카모리마치",phone:"+81-967-62-1700",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:3,desc:"해발 900m 아소산 중턱 코스. 야생 사슴과 함께 라운드. 압도적 자연 경관.",tips:"사슴 출몰 많음. 고도 높아 기온 낮으니 복장 주의.",tags:["18홀", "해발 900m", "야생 사슴"],tagTypes:["default", "gold", "green"]},
+  {id:17,region:'kumamoto',rank:'default',name:"그린랜드 리조트 골프코스",nameJp:"グリーンランドリゾートGC",lat:32.9917558,lng:130.4624597,rating:3.9,count:454,address:"아라오시 시모이데",phone:"+81-968-66-2121",hours:"평일 06:30–16:00 / 주말 06:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"5,000~",diff:2,desc:"구마모토 최저가 코스 중 하나. 오렌지 코스 컨디션 우수. 그린 랜드 놀이공원 인근.",tips:"요금 대비 만족도 높음. 주말 혼잡 주의. 놀이공원과 함께 가족 여행 추천.",tags:["18홀", "최저가", "가성비"],tagTypes:["default", "gold", "gold"]},
+  {id:18,region:'kumamoto',rank:'default',name:"카호쿠 골프클럽",nameJp:"鹿北ゴルフ倶楽部",lat:33.1300308,lng:130.705048,rating:3.9,count:256,address:"야마가시 카호쿠마치",phone:"+81-968-32-3888",hours:"평일 07:00–17:30 / 주말 06:30–17:30",closed:"연중무휴",korean:true,holes:18,par:72,fee:"8,000~",diff:3,desc:"프런트 스태프 한국어 가능. 넓고 잘 관리된 페어웨이. 무료 음료 이벤트 있음.",tips:"한국어 프런트 스태프 친절. 러프 깊으니 볼 여유분 챙길 것.",tags:["18홀", "한국어 가능", "넓은 페어웨이"],tagTypes:["default", "green", "default"]},
+  {id:19,region:'kumamoto',rank:'default',name:"구마모토 크라운 골프클럽",nameJp:"熊本クラウンゴルフ倶楽部",lat:32.2605331,lng:130.8701283,rating:4.0,count:129,address:"구마군 아사기리마치",phone:"+81-966-45-5611",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"9,000~",diff:2,desc:"히토요시 IC 10분. 서비스 최고 평가. 페어웨이 카트 진입 가능. 여성·시니어 추천.",tips:"고속도로 IC 근접. 직원 서비스 수준 최고. 전동 카트 쾌적.",tags:["18홀", "최고 서비스", "페어웨이 카트"],tagTypes:["default", "gold", "green"]},
+  {id:20,region:'kumamoto',rank:'gold',name:"아소 도큐 골프클럽",nameJp:"阿蘇東急ゴルフクラブ",lat:32.8771998,lng:130.9903469,rating:4.1,count:439,address:"아소군 미나미아소무라 가와요",phone:"+81-967-67-1616",hours:"연중무휴",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"도큐 그룹 운영 아소 고원 코스. 아소 절경 속 쾌적한 라운드. 외국인 친화적 스태프.",tips:"여름 주중 방문 시 요금 저렴. 외국인도 편하게 이용 가능. 기온 낮은 날 방한 준비.",tags:["18홀", "도큐 그룹", "아소 절경"],tagTypes:["default", "gold", "green"]},
+  {id:21,region:'hokkaido',rank:'gold',name:"홋카이도 클래식 골프클럽",nameJp:"北海道クラシックGC",lat:42.7492834,lng:141.7775407,rating:4.5,count:496,address:"아비라초, 유후쓰군",phone:"+81-145-22-4101",hours:"문의 필요",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"30,000~",diff:4,desc:"삿포로에서 1시간. 페어웨이와 러프가 그린처럼 아름답게 관리된 홋카이도 최고급 코스.",tips:"회원 동반 필요할 수 있음. 여름 방문 추천.",tags:["18홀", "최고급", "캐디"],tagTypes:["default", "gold", "green"]},
+  {id:22,region:'hokkaido',rank:'gold',name:"삿포로 골프클럽 와쓰코스",nameJp:"札幌ゴルフ倶楽部ワッツコース",lat:42.9461825,lng:141.4977189,rating:4.4,count:400,address:"기타히로시마시 와쓰",phone:"+81-11-376-2231",hours:"06:00–18:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"25,000~",diff:4,desc:"ANA 오픈 개최 홋카이도 최명문. 러프 OB 수준으로 페어웨이 정확도 필수.",tips:"ANA 오픈 직후 러프 길어짐. 스파이시 미소 라멘 명물.",tags:["18홀", "ANA 오픈", "최명문"],tagTypes:["default", "gold", "gold"]},
+  {id:23,region:'hokkaido',rank:'gold',name:"렘브란트 골프클럽 삿포로",nameJp:"レンブラントGC札幌",lat:42.9244737,lng:141.4332308,rating:4.6,count:84,address:"삿포로시 기요타구",phone:"+81-11-376-4431",hours:"06:30–19:00",closed:"일요일·동절기 휴업",korean:true,holes:18,par:72,fee:"18,000~",diff:3,desc:"삿포로 시내 전망 레스토랑. 하프 뷔페 포함. 한국인 손님 많음.",tips:"일요일 휴무 주의. 뷔페 내용 풍성. 코스 관리 최근 크게 향상.",tags:["18홀", "시내 전망", "뷔페 포함"],tagTypes:["default", "gold", "green"]},
+  {id:24,region:'hokkaido',rank:'default',name:"히쓰지가오카 컨트리클럽",nameJp:"羊ケ丘カントリークラブ",lat:42.9670113,lng:141.3911414,rating:4.1,count:323,address:"삿포로시 도요히라구",phone:"+81-11-581-3511",hours:"07:00–17:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"삿포로 교외 자연 코스. 여우·너구리 목격 가능. 검은 모래 벙커 독특.",tips:"야생동물 출몰 많음. 자연을 즐기는 라운드에 적합.",tags:["18홀", "야생동물", "자연"],tagTypes:["default", "green", "default"]},
+  {id:25,region:'hokkaido',rank:'default',name:"선 파크 삿포로",nameJp:"サンパーク札幌GC",lat:42.9528624,lng:141.5469554,rating:4.0,count:658,address:"기타히로시마시 도미가오카",phone:"+81-11-372-6370",hours:"문의 필요",closed:"동절기 휴업",korean:false,holes:27,par:108,fee:"9,000~",diff:2,desc:"삿포로 근교 27홀 퍼블릭 코스. 초보자 친화적.",tips:"주말 후반조 대기 있을 수 있음. 가성비 좋은 퍼블릭.",tags:["27홀", "퍼블릭", "초보 친화"],tagTypes:["default", "green", "gold"]},
+  {id:26,region:'tohoku',rank:'gold',name:"이즈미 국제 골프클럽",nameJp:"泉国際ゴルフ倶楽部",lat:38.340129,lng:140.769989,rating:4.3,count:293,address:"센다이시 이즈미구",phone:"+81-22-379-3333",hours:"평일 09:00–18:30 / 주말 09:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"15,000~",diff:4,desc:"센다이 최고 관리 코스. 빠른 그린과 전략적 홀 배치.",tips:"그린 속도 빠름. 명물 볶은 숙주나물 요리 인기. 캐디 동반 추천.",tags:["18홀", "고품질", "빠른 그린"],tagTypes:["default", "gold", "gold"]},
+  {id:27,region:'tohoku',rank:'gold',name:"리후 골프클럽",nameJp:"利府ゴルフ倶楽部",lat:38.3537648,lng:140.9737492,rating:4.4,count:663,address:"미야기현 리후초",phone:"+81-22-356-7311",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"18,000~",diff:3,desc:"GRAND PGM 운영 미야기 최고 코스. 페어웨이·그린 완벽 관리.",tips:"스태프 친절도 최고. 레스토랑 다소 비쌈. 사전 예약 필수.",tags:["18홀", "GRAND PGM", "최고 관리"],tagTypes:["default", "gold", "gold"]},
+  {id:28,region:'tohoku',rank:'gold',name:"나쓰도마리 골프 링크스",nameJp:"夏泊ゴルフリンクス",lat:41.0005634,lng:140.8858641,rating:4.2,count:317,address:"아오모리현 히라나이초",phone:"+81-17-759-2800",hours:"08:00–17:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"15,000~",diff:4,desc:"일본 No.1 링크스 코스. 해안선 절경. 가리비 거리 드라이브 코스.",tips:"바람 강함 주의. 숙박+라운드 패키지 추천.",tags:["18홀", "링크스", "해안 절경"],tagTypes:["default", "gold", "gold"]},
+  {id:29,region:'kanto',rank:'gold',name:"아사기리 컨트리클럽",nameJp:"朝霧カントリークラブ",lat:35.4050299,lng:138.6048801,rating:4.5,count:366,address:"시즈오카현 후지노미야시",phone:"+81-544-52-0131",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"22,000~",diff:3,desc:"전 홀 후지산 조망. 뷔페 런치 포함. 완벽 관리.",tips:"후지산 조망 최고. 뷔페 내용 풍성. 사전 예약 필수.",tags:["18홀", "후지산 조망", "뷔페 포함"],tagTypes:["default", "gold", "green"]},
+  {id:30,region:'kanto',rank:'gold',name:"가와나 호텔 골프 코스",nameJp:"川奈ホテルゴルフコース",lat:34.940126,lng:139.139965,rating:4.5,count:765,address:"시즈오카현 이토시",phone:"+81-557-45-1111",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:36,par:144,fee:"30,000~",diff:4,desc:"1936년 개장 일본 페블비치. 태평양 오션뷰. 찰스 알리슨 설계 명작.",tips:"일본 대표 명코스. 숙박+라운드 패키지 추천.",tags:["36홀", "일본 페블비치", "역사적"],tagTypes:["default", "gold", "gold"]},
+  {id:31,region:'kanto',rank:'gold',name:"도쿄 골프클럽",nameJp:"東京ゴルフ倶楽部",lat:35.8960109,lng:139.406676,rating:4.3,count:183,address:"사야마시 가시와바라",phone:"+81-4-2953-9111",hours:"문의 필요",closed:"화요일 휴무",korean:false,holes:18,par:72,fee:"40,000~",diff:5,desc:"일본 최명문. 120개 이상 벙커. Japan Open 개최지.",tips:"회원 동반 필수. 벙커 많아 어프로치 정밀도 필요.",tags:["18홀", "최명문", "Japan Open"],tagTypes:["default", "gold", "gold"]},
+  {id:32,region:'kanto',rank:'gold',name:"도쓰카 컨트리클럽",nameJp:"戸塚カントリークラブ",lat:35.443661,lng:139.5377083,rating:4.3,count:544,address:"요코하마시 도쓰카구",phone:"+81-45-351-1241",hours:"화~일 07:00–17:30",closed:"월요일 휴무",korean:false,holes:18,par:72,fee:"25,000~",diff:4,desc:"세계 클래스 코스. 웨스트 코스는 토너먼트 코스.",tips:"드레스코드 엄격. 웨스트 코스 예약 어려움.",tags:["18홀", "세계 클래스", "토너먼트"],tagTypes:["default", "gold", "gold"]},
+  {id:33,region:'kanto',rank:'default',name:"와카스 골프링크스",nameJp:"若洲ゴルフリンクス",lat:35.6288223,lng:139.8361206,rating:4.1,count:953,address:"도쿄도 고토구",phone:"+81-570-072-562",hours:"06:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"5,000~",diff:2,desc:"도쿄 시내에서 가장 가까운 퍼블릭 코스.",tips:"예약 매우 어려움. 클럽 렌탈 가능.",tags:["18홀", "도심", "퍼블릭"],tagTypes:["default", "green", "default"]},
+  {id:34,region:'chubu',rank:'gold',name:"나고야 골프클럽",nameJp:"名古屋ゴルフ倶楽部",lat:35.110313,lng:137.032715,rating:4.2,count:293,address:"아이치현 토고초",phone:"+81-52-801-1111",hours:"월·수~토 06:30–17:30",closed:"화요일 휴무",korean:false,holes:18,par:72,fee:"35,000~",diff:5,desc:"이시카와 료 세계 최저 스코어 달성 코스. Chunichi Crowns 개최지.",tips:"그린 매우 빠름. 회원 동반 필요 가능성.",tags:["18홀", "세계기록", "명문"],tagTypes:["default", "gold", "gold"]},
+  {id:35,region:'chubu',rank:'gold',name:"가루이자와 72 골프",nameJp:"軽井沢72ゴルフ",lat:36.3487,lng:138.6254,rating:4.3,count:523,address:"나가노현 가루이자와마치",phone:"+81-267-48-3100",hours:"07:00–17:00",closed:"동절기 휴업",korean:false,holes:72,par:288,fee:"18,000~",diff:3,desc:"72홀 4코스 대형 골프 리조트. 한국 골퍼 많이 방문.",tips:"4코스 다양한 조합. 한국어 대응 가능.",tags:["72홀", "4코스", "리조트"],tagTypes:["default", "gold", "green"]},
+  {id:36,region:'chubu',rank:'gold',name:"골프클럽 트윈필즈",nameJp:"GCツインフィールズ",lat:36.4126188,lng:136.5367244,rating:4.2,count:294,address:"이시카와현 고마쓰시",phone:"+81-761-47-4500",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:36,par:144,fee:"15,000~",diff:3,desc:"여자프로 투어 개최 골드·다이아몬드 2코스.",tips:"골드 코스가 투어 코스. 알바 카레 명물.",tags:["36홀", "여자프로 투어", "2코스"],tagTypes:["default", "gold", "green"]},
+  {id:37,region:'kinki',rank:'gold',name:"오사카 골프클럽",nameJp:"大阪ゴルフクラブ",lat:34.3246568,lng:135.1542098,rating:4.2,count:345,address:"센난군 미사키초",phone:"+81-72-492-2011",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"22,000~",diff:3,desc:"오사카만 전망 코스. 뷔페 런치 포함. 스파 온천 완비.",tips:"런치·카트·렌탈 포함. 라운드 후 스파 이용 추천.",tags:["18홀", "오사카만 뷰", "스파 온천"],tagTypes:["default", "gold", "green"]},
+  {id:38,region:'kinki',rank:'gold',name:"고베 골프클럽",nameJp:"神戸ゴルフ倶楽部",lat:34.7484,lng:135.2342,rating:4.4,count:245,address:"효고현 고베시 기타구",phone:"+81-78-891-0003",hours:"문의 필요",closed:"월요일 휴무",korean:false,holes:9,par:32,fee:"20,000~",diff:3,desc:"1903년 개장 일본 최초 골프장. 롯코산 정상. 역사적 가치 최고.",tips:"일본 골프 역사 성지. 9홀이지만 방문 가치 충분.",tags:["9홀", "일본 최초", "역사적"],tagTypes:["default", "gold", "gold"]},
+  {id:39,region:'chugoku',rank:'gold',name:"다카노스 골프클럽",nameJp:"鷹ノ巣ゴルフ倶楽部",lat:34.3699517,lng:132.2039946,rating:4.3,count:336,address:"히로시마현 하쓰카이치시",phone:"+81-829-74-3111",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"18,000~",diff:4,desc:"히로시마 최명문 코스. 완벽 관리. 조식 550엔 가성비.",tips:"조식 550엔으로 탁월한 가성비. 사전 예약 필수.",tags:["18홀", "히로시마 명문", "조식 가성비"],tagTypes:["default", "gold", "gold"]},
+  {id:40,region:'chugoku',rank:'gold',name:"쇼바라 컨트리클럽",nameJp:"庄原カントリークラブ",lat:34.822955,lng:133.01381,rating:4.3,count:156,address:"히로시마현 쇼바라시",phone:"+81-824-72-3000",hours:"평일 08:00–17:00 / 주말 07:30–17:30",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:4,desc:"도그레그·블라인드·내리막 전략적 코스. 사슴과 함께하는 자연 속 라운드.",tips:"난이도 높아 초보 주의. 굴 덮밥 맛있음.",tags:["18홀", "전략적", "야생 사슴"],tagTypes:["default", "gold", "green"]},
+  {id:41,region:'chugoku',rank:'default',name:"세토우치 골프 리조트",nameJp:"瀬戸内ゴルフリゾート",lat:34.3061999,lng:132.864325,rating:4.1,count:646,address:"히로시마현 다케하라시",phone:"+81-846-23-4141",hours:"07:00–16:30",closed:"연중무휴",korean:false,holes:18,par:72,fee:"14,000~",diff:3,desc:"바다 전망 리조트 코스. 자연경관 뛰어남.",tips:"그린 상태 날씨 영향 받음. 숙박 패키지 추천.",tags:["18홀", "오션뷰", "리조트"],tagTypes:["default", "gold", "green"]},
+  {id:42,region:'shikoku',rank:'gold',name:"고치 구로시오 컨트리클럽",nameJp:"高知黒潮カントリークラブ",lat:33.5394183,lng:133.7929821,rating:4.4,count:889,address:"고치현 게이세이촌",phone:"+81-887-33-4455",hours:"09:00–18:00",closed:"연중무휴",korean:false,holes:36,par:144,fee:"16,000~",diff:3,desc:"태평양 오션뷰 홀 보유 4코스. 외국인 친화적.",tips:"태평양 전망 홀이 최고 하이라이트. 여름 더위 주의.",tags:["36홀", "태평양 뷰", "외국인 친화"],tagTypes:["default", "gold", "green"]},
+  {id:43,region:'shikoku',rank:'default',name:"다카마쓰 컨트리클럽",nameJp:"高松カントリークラブ",lat:34.2958389,lng:133.8861988,rating:4.0,count:309,address:"사카이데시",phone:"+81-877-46-5555",hours:"08:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"세토 내해와 다카마쓰 시내 전망. 시코쿠 최고 코스.",tips:"와인딩 도로 운전 주의.",tags:["18홀", "세토 내해", "시코쿠 최고"],tagTypes:["default", "gold", "gold"]},
+  {id:44,region:'kyushu',rank:'gold',name:"후쿠오카 컨트리클럽",nameJp:"福岡カントリークラブ",lat:33.6852475,lng:130.4387896,rating:4.3,count:370,address:"후쿠오카시 히가시구",phone:"+81-92-606-2931",hours:"화~일 07:00–17:00",closed:"월요일 휴무",korean:false,holes:18,par:72,fee:"30,000~",diff:4,desc:"후쿠오카 대표 명문. JLPGA 토너먼트 개최.",tips:"회원 동반 없이 예약 어려울 수 있음.",tags:["18홀", "JLPGA 개최", "명문"],tagTypes:["default", "gold", "gold"]},
+  {id:45,region:'kyushu',rank:'gold',name:"패시지 킨카이 아일랜드 GC",nameJp:"パサージュ琴海アイランドGC",lat:32.8992821,lng:129.8035171,rating:4.5,count:294,address:"나가사키시",phone:"+81-95-884-3990",hours:"08:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"20,000~",diff:4,desc:"나가사키 최고 명문. 오무라만 전망. 공항에서 페리 30분.",tips:"페리 이용 편리. 캐디 우수.",tags:["18홀", "오션뷰", "페리 접근"],tagTypes:["default", "gold", "green"]},
+  {id:46,region:'kyushu',rank:'gold',name:"사가 클래식 골프클럽",nameJp:"佐賀クラシックゴルフ倶楽部",lat:33.2500911,lng:130.0625269,rating:4.2,count:296,address:"사가현 다쿠시",phone:"+81-952-75-2001",hours:"평일 07:00–18:30 / 주말 06:30–19:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"13,000~",diff:4,desc:"산악 뷰 전략적 코스. 그린 속도 업계 최고 수준.",tips:"샤부샤부 돼지 런치 강력 추천.",tags:["18홀", "산악뷰", "빠른 그린"],tagTypes:["default", "gold", "gold"]},
+  {id:47,region:'kyushu',rank:'gold',name:"지란 컨트리클럽",nameJp:"知覧カントリークラブ",lat:31.399989,lng:130.500426,rating:4.2,count:381,address:"가고시마현 미나미큐슈시",phone:"+81-993-83-4711",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"사쿠라지마 뷰 코스. 겨울에도 푸른 페어웨이.",tips:"이부스키 숙박 후 방문 편리.",tags:["18홀", "사쿠라지마 뷰", "겨울 라운드"],tagTypes:["default", "gold", "green"]},
+  {id:48,region:'kyushu',rank:'gold',name:"가고시마 다카마키 CC",nameJp:"鹿児島高牧カントリークラブ",lat:31.7620735,lng:130.539215,rating:4.2,count:365,address:"가고시마현 아이라시",phone:"+81-995-52-1603",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"14,000~",diff:3,desc:"천연 온천 대욕장 완비. 투어 레벨 페어웨이.",tips:"시내에서 약 40분. 숙박 패키지 추천.",tags:["18홀", "천연 온천", "명문"],tagTypes:["default", "green", "gold"]},
+  {id:49,region:'kyushu',rank:'gold',name:"미야자키 시가이아 GC",nameJp:"宮崎シーガイアGC",lat:31.9187,lng:131.4594,rating:4.1,count:356,address:"미야자키현 미야자키시",phone:"+81-985-21-1155",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:36,par:144,fee:"20,000~",diff:3,desc:"세계적 리조트 피닉스 시가이아 내 36홀. 세계 스타 방문.",tips:"리조트 숙박 패키지 최적.",tags:["36홀", "세계 리조트", "바다 뷰"],tagTypes:["default", "gold", "gold"]},
+  {id:50,region:'okinawa',rank:'gold',name:"부세나 테라스 골프코스",nameJp:"ブセナテラスGC",lat:26.5108,lng:127.9297,rating:4.3,count:289,address:"오키나와현 나고시",phone:"+81-980-51-1333",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"22,000~",diff:3,desc:"부세나 해중공원 인근 리조트 코스. 에메랄드빛 오키나와 바다 전망.",tips:"오키나와 관광+골프 최적. 한국 직항 이용 편리.",tags:["18홀", "오키나와", "리조트"],tagTypes:["default", "gold", "green"]},
+  {id:51,region:'okinawa',rank:'default',name:"오키나와 세나가 섬 GC",nameJp:"沖縄瀬長島GC",lat:26.1734,lng:127.6789,rating:4.1,count:198,address:"오키나와현 도미구스쿠시",phone:"+81-98-851-3011",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"14,000~",diff:2,desc:"나하 공항 10분 거리 오션뷰 코스.",tips:"나하 공항 바로 옆. 한국 직항 이용객 편리.",tags:["18홀", "공항 근교", "오션뷰"],tagTypes:["default", "gold", "green"]},
+  {id:52,region:'hokkaido',rank:'default',name:"홋카이도 브룩스 컨트리클럽",nameJp:"北海道ブルックスCC",lat:42.7222222,lng:141.6694444,rating:4.3,count:362,address:"도마코마이시 우에나에",phone:"+81-144-58-3211",hours:"07:00–18:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"15,000~",diff:3,desc:"홋카이도 최고 프레스티지 코스 중 하나. 그린 관리 우수. 셀프플레이 가능.",tips:"셀프플레이 가능. 러프 깊어 공 잃기 쉬움.",tags:["18홀", "명문", "셀프플레이"],tagTypes:["default", "gold", "default"]},
+  {id:53,region:'hokkaido',rank:'default',name:"니돔 클래식 코스",nameJp:"ニドムクラシックコース",lat:42.7178858,lng:141.6541586,rating:4.0,count:1022,address:"도마코마이시 우에나에",phone:"+81-144-55-1888",hours:"06:30–18:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"12,000~",diff:2,desc:"삿포로 시내에서 1시간. 아이누 문화 전시 클럽하우스. 리조트 숙박 연계 가능.",tips:"외국인 세금 별도 부과 경우 있음. 코스 레이아웃 우수.",tags:["18홀", "리조트", "아이누 문화"],tagTypes:["default", "green", "default"]},
+  {id:54,region:'hokkaido',rank:'default',name:"홋카이도 골프클럽",nameJp:"北海道ゴルフ倶楽部",lat:42.6340169,lng:141.4990722,rating:4.0,count:469,address:"도마코마이시 니시키오카",phone:"+81-144-67-6811",hours:"09:00–18:00",closed:"동절기 휴업",korean:false,holes:36,par:144,fee:"10,000~",diff:3,desc:"이글·라이온 2코스 36홀. 요금 합리적이며 잘 정비된 코스.",tips:"이글 코스가 더 재미있다는 평. 러프 깊음.",tags:["36홀", "2코스", "합리적"],tagTypes:["default", "default", "gold"]},
+  {id:55,region:'hokkaido',rank:'default',name:"후라노 골프 코스",nameJp:"富良野ゴルフ場",lat:43.334987,lng:142.4835627,rating:4.1,count:153,address:"후라노시 야하타오카",phone:"+81-167-22-1111",hours:"문의 필요",closed:"동절기 휴업",korean:false,holes:36,par:144,fee:"8,000~",diff:3,desc:"후라노 자연 속 리조트 코스. 팔머·킹 2코스 운영. 드레스코드 없는 자유로운 분위기.",tips:"팔머 코스가 더 어려움. 시즌 한정.",tags:["36홀", "리조트", "자유로운"],tagTypes:["default", "green", "green"]},
+  {id:56,region:'hokkaido',rank:'default',name:"다이세쓰잔 컨트리클럽",nameJp:"大雪山カントリークラブ",lat:43.6490712,lng:142.497495,rating:3.9,count:194,address:"히가시카구라초",phone:"+81-166-83-2011",hours:"문의 필요",closed:"동절기 휴업",korean:false,holes:36,par:144,fee:"8,000~",diff:3,desc:"아사히카와 최대 36홀 코스. 이스트·웨스트 2코스. 기복 있는 재미있는 홀 배치.",tips:"카트 페어웨이 진입 가능. 시즌 한정.",tags:["36홀", "아사히카와", "광활한"],tagTypes:["default", "green", "default"]},
+  {id:57,region:'tohoku',rank:'gold',name:"센다이 클래식 골프클럽",nameJp:"仙台クラシックGC",lat:38.384562,lng:140.915512,rating:4.2,count:328,address:"미야기현 도미야시",phone:"+81-22-358-1144",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"16,000~",diff:4,desc:"여자프로 토너먼트 개최 코스. 그린 매우 빠름. 드라이빙레인지 210야드 완비.",tips:"그린 속도 빠름 주의. 볶음 요리 맛있음.",tags:["18홀", "JLPGA 개최", "빠른 그린"],tagTypes:["default", "gold", "gold"]},
+  {id:58,region:'tohoku',rank:'default',name:"이즈미 파크타운 골프클럽",nameJp:"泉パークタウンGC",lat:38.347011,lng:140.845398,rating:4.2,count:293,address:"센다이시 이즈미구",phone:"+81-22-378-3311",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"자연 풍부한 명문 코스. 재킷 착용 필수. 리모컨 카트 완비. 가을 단풍 아름다움.",tips:"재킷 착용 필수. 단풍 시즌 방문 강력 추천.",tags:["18홀", "명문", "드레스코드"],tagTypes:["default", "gold", "gold"]},
+  {id:59,region:'tohoku',rank:'default',name:"아오모리 컨트리클럽",nameJp:"青森カントリークラブ",lat:40.7371473,lng:140.7486098,rating:4.1,count:190,address:"아오모리시",phone:"+81-17-739-2129",hours:"10:00–19:00",closed:"동절기 휴업",korean:false,holes:27,par:108,fee:"10,000~",diff:3,desc:"핫코다 산맥 배경 27홀. 공항·시내 근접.",tips:"공항에서 접근 편리. 터치 패널 카트.",tags:["27홀", "하코다산 뷰", "시내 근교"],tagTypes:["default", "gold", "green"]},
+  {id:60,region:'tohoku',rank:'default',name:"미치노쿠 국제 골프클럽",nameJp:"みちのく国際ゴルフ倶楽部",lat:40.653838,lng:141.21545,rating:4.2,count:189,address:"아오모리현 도와다시",phone:"+81-176-25-8111",hours:"08:00–16:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"국제대회 개최지. 평탄하고 넓은 페어웨이. 대형 나무가 인상적.",tips:"장어 덮밥이 인기 메뉴.",tags:["18홀", "국제대회", "넓은 페어웨이"],tagTypes:["default", "gold", "default"]},
+  {id:61,region:'tohoku',rank:'default',name:"센다이 힐즈 골프클럽",nameJp:"仙台ヒルズゴルフ倶楽部",lat:38.3015681,lng:140.8252075,rating:4.0,count:247,address:"센다이시 이즈미구",phone:"+81-22-278-0736",hours:"문의 필요",closed:"연중무휴",korean:false,holes:27,par:108,fee:"9,000~",diff:2,desc:"관음상 전망 명소. 3개 9홀 코스. 시내 근접 접근성 우수.",tips:"여름 덥고 에어컨 카트 추가 요금 있음.",tags:["27홀", "시내 근교", "관음상 전망"],tagTypes:["default", "green", "gold"]},
+  {id:62,region:'kanto',rank:'gold',name:"타마 힐즈 골프 코스",nameJp:"多摩ヒルズゴルフコース",lat:35.635277,lng:139.4665399,rating:4.4,count:107,address:"도쿄도 다마시",phone:"+81-42-374-2811",hours:"05:30–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"4,000~",diff:3,desc:"맑은 날 후지산 조망 가능. 매우 합리적인 요금. 영어 서비스.",tips:"군 관계자 우선. 일반인 접근 제한될 수 있음.",tags:["18홀", "후지산 조망", "영어 가능"],tagTypes:["default", "gold", "green"]},
+  {id:63,region:'kanto',rank:'gold',name:"후가쿠 컨트리클럽",nameJp:"富岳カントリークラブ",lat:35.168269,lng:138.527925,rating:4.4,count:370,address:"시즈오카현 시미즈구",phone:"+81-544-65-2211",hours:"06:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"20,000~",diff:3,desc:"후지산 조망 아름다운 코스. 캐디 서비스 우수. 신발 닦기 서비스.",tips:"캐디 예약 시 신발 닦기 포함. 스파 이용 가능.",tags:["18홀", "후지산 조망", "캐디 서비스"],tagTypes:["default", "gold", "green"]},
+  {id:64,region:'kanto',rank:'default',name:"요코하마 컨트리클럽",nameJp:"横浜カントリークラブ",lat:35.445905,lng:139.5489545,rating:4.1,count:565,address:"요코하마시 호도가야구",phone:"+81-45-351-1001",hours:"05:45–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"18,000~",diff:4,desc:"도쿄 30분 거리 명문. 웨스트 코스 워킹 전용.",tips:"이른 아침 5:45 오픈. 웨스트 코스는 워킹만.",tags:["18홀", "도쿄 근교", "워킹 코스"],tagTypes:["default", "green", "default"]},
+  {id:65,region:'kanto',rank:'default',name:"키미노모리 골프클럽",nameJp:"君の杜ゴルフ倶楽部",lat:35.5583083,lng:140.295609,rating:4.2,count:586,address:"지바현 오아미시라사토",phone:"+81-475-73-0109",hours:"06:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"아름답고 잘 정비된 코스. 외국인 친화적 스태프.",tips:"스태프 서비스 우수. 자연 속 쾌적한 플레이.",tags:["18홀", "외국인 친화", "자연"],tagTypes:["default", "green", "default"]},
+  {id:66,region:'kanto',rank:'default',name:"리버 후지 컨트리클럽",nameJp:"リバー富士カントリークラブ",lat:35.1826928,lng:138.5707699,rating:4.2,count:479,address:"시즈오카현 후지시",phone:"+81-545-85-3371",hours:"06:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:2,desc:"후지산 조망 최적 코스. 합리적 요금.",tips:"후지산 조망 훌륭. 가성비 좋음.",tags:["18홀", "후지산 조망", "가성비"],tagTypes:["default", "gold", "gold"]},
+  {id:67,region:'kanto',rank:'default',name:"시바야마 골프클럽",nameJp:"芝山ゴルフ倶楽部",lat:35.7060014,lng:140.4170118,rating:3.9,count:609,address:"지바현 삼부군",phone:"+81-479-77-4123",hours:"06:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"9,900~",diff:3,desc:"D. 무어헤드 설계 전략적 코스. 5개 연못과 벙커 배치 독특. 나리타 공항 근처.",tips:"나리타 공항 근처로 접근 편리.",tags:["18홀", "무어헤드 설계", "나리타 근교"],tagTypes:["default", "gold", "green"]},
+  {id:68,region:'kanto',rank:'default',name:"닛코 골프클럽",nameJp:"日光ゴルフ倶楽部",lat:36.7202,lng:139.6987,rating:4.2,count:267,address:"도치기현 닛코시",phone:"+81-288-53-0111",hours:"07:00–17:00",closed:"동절기 휴업",korean:false,holes:18,par:72,fee:"14,000~",diff:3,desc:"닛코 세계유산 인근 고원 코스. 여름에도 서늘한 기후.",tips:"닛코 신사 관광과 함께 추천. 여름 쾌적.",tags:["18홀", "닛코", "고원"],tagTypes:["default", "gold", "green"]},
+  {id:69,region:'chubu',rank:'default',name:"골프클럽 가나자와 링크스",nameJp:"GC金沢リンクス",lat:36.6342542,lng:136.6176775,rating:4.1,count:176,address:"이시카와현 가나자와시",phone:"+81-76-237-2222",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"9,000~",diff:2,desc:"노토 반도 대지진 후 2025년 재개장. 넓고 평탄한 링크스 스타일.",tips:"2025년 4월 재개장. 라인 멤버십 등록 필요.",tags:["18홀", "링크스", "재개장"],tagTypes:["default", "green", "default"]},
+  {id:70,region:'chubu',rank:'default',name:"골드 후쿠이 컨트리클럽",nameJp:"ゴールド福井CC",lat:36.0327968,lng:136.1263884,rating:4.2,count:188,address:"후쿠이현 가미테가초",phone:"+81-776-98-4100",hours:"07:30–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"후쿠이 최고 수준 코스. 빠르고 아름다운 그린. 9·18번 홀 연못 도전.",tips:"연못 넘어 도전 vs 레이업 전략. 식사 수준 높음.",tags:["18홀", "고품질", "전략적"],tagTypes:["default", "gold", "default"]},
+  {id:71,region:'chubu',rank:'default',name:"후쿠이 컨트리클럽",nameJp:"福井カントリークラブ",lat:36.126201,lng:136.302264,rating:3.8,count:176,address:"후쿠이현 사카이시",phone:"+81-776-66-5111",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:27,par:108,fee:"8,000~",diff:2,desc:"아코르디아 운영 27홀. IC 근접 접근성 우수. 넓은 페어웨이.",tips:"27홀로 다양한 코스 조합 가능. 접근성 최고.",tags:["27홀", "아코르디아", "접근성"],tagTypes:["default", "green", "default"]},
+  {id:72,region:'kinki',rank:'default',name:"하나 컨트리클럽",nameJp:"ハンナカントリークラブ",lat:34.7032737,lng:135.6669006,rating:3.8,count:495,address:"오사카부 다이토시",phone:"+81-72-869-0101",hours:"06:30–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"9,000~",diff:3,desc:"오사카 도심 근접. 오사카 시내와 단풍 전망.",tips:"시내 근접으로 접근 편리. 코스 먼저 파악 후 공략.",tags:["18홀", "시내 근교", "오사카 전망"],tagTypes:["default", "green", "gold"]},
+  {id:73,region:'kinki',rank:'gold',name:"나루타키 컨트리클럽",nameJp:"鳴滝カントリークラブ",lat:34.6991,lng:135.6023,rating:4.2,count:312,address:"효고현 고베시 니시구",phone:"+81-78-974-3311",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"15,000~",diff:3,desc:"고베 시내 근접 명문 코스. 잘 관리된 페어웨이.",tips:"고베 방문 시 추천. 예약 시 멤버 동반 확인.",tags:["18홀", "고베 명문", "도심 근교"],tagTypes:["default", "gold", "green"]},
+  {id:74,region:'kinki',rank:'default',name:"나라 컨트리클럽",nameJp:"奈良カントリークラブ",lat:34.6851,lng:135.8326,rating:4.1,count:289,address:"나라현 나라시",phone:"+81-742-44-3031",hours:"07:00–17:00",closed:"월요일 휴무",korean:false,holes:18,par:72,fee:"14,000~",diff:3,desc:"나라 사슴공원 인근 코스. 나라 관광과 골프 조합 최적.",tips:"나라 관광+골프 1박2일 패키지 추천. 봄 벚꽃 시즌 최고.",tags:["18홀", "나라", "관광 연계"],tagTypes:["default", "green", "gold"]},
+  {id:75,region:'chugoku',rank:'default',name:"치요다 골프클럽",nameJp:"千代田ゴルフ倶楽部",lat:34.6960557,lng:132.4832743,rating:4.1,count:382,address:"히로시마현 기타히로시마초",phone:"+81-826-72-2100",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:3,desc:"아코르디아 그룹 운영. 그린 언듈레이션 크고 빠름. 단풍 시즌 아름다운 산악 코스.",tips:"그린 매우 어려운 편. 아코르디아 포인트 카드 사용 가능.",tags:["18홀", "아코르디아", "단풍 명소"],tagTypes:["default", "green", "gold"]},
+  {id:76,region:'chugoku',rank:'default',name:"오카야마 국제 골프클럽",nameJp:"岡山国際ゴルフ倶楽部",lat:34.7821,lng:133.8934,rating:4.1,count:356,address:"오카야마현 아카이와시",phone:"+81-86-956-1111",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"13,000~",diff:3,desc:"오카야마 대표 코스. 세토 내해 전망. 잘 관리된 그린.",tips:"오카야마 공항 근처로 접근 편리.",tags:["18홀", "세토 내해 뷰", "접근성"],tagTypes:["default", "gold", "green"]},
+  {id:77,region:'chugoku',rank:'default',name:"다이센 컨트리클럽",nameJp:"大山カントリークラブ",lat:35.3623,lng:133.4512,rating:4.1,count:189,address:"돗토리현 도하쿠군",phone:"+81-858-52-2111",hours:"07:00–17:00",closed:"동절기 일부 휴업",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"다이센 산 조망 코스. 중국 지방 최고 경관 코스 중 하나.",tips:"다이센 등산+골프 조합 추천. 봄~가을 추천.",tags:["18홀", "다이센 뷰", "자연"],tagTypes:["default", "gold", "green"]},
+  {id:78,region:'shikoku',rank:'default',name:"도사 컨트리클럽",nameJp:"土佐カントリークラブ",lat:33.5213358,lng:133.7758196,rating:4.2,count:551,address:"고치현 코난시",phone:"+81-887-55-2131",hours:"06:30–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"13,000~",diff:4,desc:"JLPGA 개최 코스. 고치만 전망 레스토랑. 기복 있어 체력 소모 큼.",tips:"고난이도 코스. 레스토랑 메뉴 다양하고 저렴.",tags:["18홀", "JLPGA 개최", "고치만 뷰"],tagTypes:["default", "gold", "gold"]},
+  {id:79,region:'shikoku',rank:'default',name:"로얄 다카마쓰 컨트리클럽",nameJp:"ロイヤル高松CC",lat:34.2120742,lng:133.9985615,rating:4.0,count:218,address:"아야가와초",phone:"+81-87-877-0307",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"9,000~",diff:2,desc:"다카마쓰 공항 옆. 레스토랑에서 활주로 조망 가능.",tips:"공항 근처라 비행기 보며 라운드 가능.",tags:["18홀", "공항 뷰", "접근성"],tagTypes:["default", "gold", "green"]},
+  {id:80,region:'shikoku',rank:'default',name:"다카마쓰 그랜드 컨트리클럽",nameJp:"高松グランドCC",lat:34.2312691,lng:134.1331923,rating:3.9,count:304,address:"기타군 미키초",phone:"+81-87-898-2281",hours:"평일 08:00–17:00 / 주말 07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"8,000~",diff:3,desc:"야시마·세토 내해 전망. 시카니와·코가미 2코스 운영.",tips:"일식·양식·중식 레스토랑.",tags:["18홀", "2코스", "전망"],tagTypes:["default", "green", "gold"]},
+  {id:81,region:'kyushu',rank:'gold',name:"후쿠오카 라이잔 골프클럽",nameJp:"福岡雷山ゴルフ倶楽部",lat:33.5168115,lng:130.2628375,rating:4.3,count:369,address:"이토시마시",phone:"+81-92-323-8181",hours:"문의 필요",closed:"연중무휴",korean:false,holes:18,par:72,fee:"20,000~",diff:3,desc:"SkyRKB 레이디즈 클래식 개최. 타이거 우즈 방문 역사 코스.",tips:"예약 어려운 편. 예술 작품·역사 전시 감상 가능.",tags:["18홀", "JLPGA 개최", "역사적"],tagTypes:["default", "gold", "green"]},
+  {id:82,region:'kyushu',rank:'gold',name:"노모자키 골프클럽",nameJp:"野母崎ゴルフ倶楽部",lat:32.6054146,lng:129.80317,rating:4.2,count:229,address:"나가사키시",phone:"+81-95-895-3000",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"5,500~",diff:2,desc:"독수리 떼 상공 비행하는 조용한 명코스. 런치 포함 최저가.",tips:"5,500엔 런치 포함 가성비 최고.",tags:["18홀", "초저가", "독수리"],tagTypes:["default", "gold", "green"]},
+  {id:83,region:'kyushu',rank:'gold',name:"사이토자키 시사이드 CC",nameJp:"西戸崎シーサイドCC",lat:33.6587615,lng:130.3366052,rating:4.1,count:312,address:"후쿠오카시 히가시구",phone:"+81-92-603-0678",hours:"월~금 07:00–17:00 / 주말 06:00–18:30",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:2,desc:"후쿠오카 공항·시내 근접. 바다 전망 코스.",tips:"일본어로만 예약 가능. 주말 요금 높은 편.",tags:["18홀", "시사이드", "접근성"],tagTypes:["default", "green", "default"]},
+  {id:84,region:'kyushu',rank:'default',name:"히사야마 컨트리클럽",nameJp:"久山カントリークラブ",lat:33.65003,lng:130.5016146,rating:3.9,count:487,address:"후쿠오카현 히사야마마치",phone:"+81-92-976-0222",hours:"06:30–19:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"9,000~",diff:3,desc:"후쿠오카 30분 거리. 레이크 홀 포함 전략적 코스. 가을 단풍 아름다움.",tips:"자동 카트 운영. 가을 단풍 시즌 추천.",tags:["18홀", "자동카트", "단풍"],tagTypes:["default", "default", "gold"]},
+  {id:85,region:'kyushu',rank:'default',name:"가고시마 가든 골프클럽",nameJp:"鹿児島ガーデンGC",lat:31.564394,lng:130.4374602,rating:4.0,count:257,address:"가고시마시",phone:"+81-99-278-5200",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"가고시마 시내 근접. 페어웨이 카트 가능. 레스토랑 수준 높음.",tips:"시내 근접. 페어웨이 카트 추가 500엔.",tags:["18홀", "시내 근교", "레스토랑"],tagTypes:["default", "green", "default"]},
+  {id:86,region:'kyushu',rank:'default',name:"골든 팜 컨트리클럽",nameJp:"ゴールデンパームCC",lat:31.7148383,lng:130.5538183,rating:4.2,count:218,address:"가고시마시 혼조초",phone:"+81-99-294-2666",hours:"07:00–17:30",closed:"연중무휴",korean:false,holes:18,par:72,fee:"13,000~",diff:2,desc:"열대 분위기 코스. 페어웨이 카트 자유 주행. 숙박 연계 가능.",tips:"골프+숙박 패키지 추천.",tags:["18홀", "열대 분위기", "카트 페어웨이"],tagTypes:["default", "green", "gold"]},
+  {id:87,region:'kyushu',rank:'default',name:"사가 컨트리클럽",nameJp:"佐賀カントリークラブ",lat:33.3375731,lng:130.4695155,rating:4.1,count:301,address:"미야키군 미야키초",phone:"+81-942-89-2049",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"11,000~",diff:3,desc:"세이이치 이노우에 설계 클래식 코스. 블라인드 홀 다수. 잉어 연못 명물.",tips:"블라인드 홀 많아 캐디 추천.",tags:["18홀", "클래식", "잉어 연못"],tagTypes:["default", "green", "gold"]},
+  {id:88,region:'kyushu',rank:'default',name:"오션 팰리스 골프&리조트",nameJp:"オーシャンパレスGC",lat:32.8847222,lng:129.8008333,rating:4.1,count:536,address:"나가사키시",phone:"+81-95-884-1118",hours:"연중무휴",closed:"연중무휴",korean:false,holes:18,par:72,fee:"18,000~",diff:3,desc:"나가사키 인스타그래머블 코스. 바다 위 파3 홀 2개.",tips:"외국인 친화적. 숙박 연계 추천.",tags:["18홀", "오션뷰", "인스타"],tagTypes:["default", "gold", "green"]},
+  {id:89,region:'kyushu',rank:'default',name:"후쿠오카 세븐 힐즈 GC",nameJp:"福岡セブンヒルズGC",lat:33.4685283,lng:130.0758799,rating:4.1,count:319,address:"사가현 가라쓰시",phone:"+81-955-58-3088",hours:"평일 08:00–18:30 / 주말 06:30–18:30",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:3,desc:"일본 최고 전망 코스 중 하나. 겨울에도 잘 정비된 그린.",tips:"주중 방문 추천. 산 위라 추울 수 있음.",tags:["18홀", "최고 전망", "가성비"],tagTypes:["default", "gold", "gold"]},
+  {id:90,region:'kyushu',rank:'default',name:"벳푸 대분 컨트리클럽",nameJp:"別府大分カントリークラブ",lat:33.2752,lng:131.5014,rating:4.0,count:267,address:"오이타현 벳푸시",phone:"+81-977-66-2116",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"12,000~",diff:3,desc:"온천 도시 벳푸 인근. 라운드 후 온천 연계 최적.",tips:"라운드 후 벳푸 온천 필수. 기복 있는 코스.",tags:["18홀", "온천 연계", "벳푸만 뷰"],tagTypes:["default", "green", "gold"]},
+  {id:91,region:'kyushu',rank:'gold',name:"미야자키 시가이아 GC",nameJp:"宮崎シーガイアGC",lat:31.9187,lng:131.4594,rating:4.1,count:356,address:"미야자키현 미야자키시",phone:"+81-985-21-1155",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:36,par:144,fee:"20,000~",diff:3,desc:"세계적 리조트 피닉스 시가이아 내 36홀. 세계 투어 스타 방문.",tips:"리조트 숙박 패키지 최적.",tags:["36홀", "세계 리조트", "바다 뷰"],tagTypes:["default", "gold", "gold"]},
+  {id:92,region:'kyushu',rank:'default',name:"오이타 CC 쓰키가타",nameJp:"大分CC月形コース",lat:33.1082832,lng:131.7093074,rating:4.1,count:168,address:"오이타현 오이타시",phone:"+81-97-595-1111",hours:"08:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:3,desc:"오이타 최장 거리 코스. 광활한 페어웨이.",tips:"외국인 입장료 별도(3,300엔). 렌터카 추천.",tags:["18홀", "장거리", "광활한"],tagTypes:["default", "gold", "default"]},
+  {id:93,region:'kyushu',rank:'default',name:"트라이얼 골프&리조트 오이타",nameJp:"TRIAL GOLF&RESORT大分",lat:33.1792458,lng:131.7126683,rating:4.1,count:247,address:"오이타시 히로우치",phone:"+81-97-529-2311",hours:"07:00–17:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"10,000~",diff:3,desc:"고급 클럽하우스와 잘 정비된 페어웨이. 숲으로 둘러싸인 경관.",tips:"음료와 커피 무료 제공. 러프가 깊어 공 잃을 수 있음.",tags:["18홀", "리조트", "울창한 숲"],tagTypes:["default", "green", "gold"]},
+  {id:94,region:'kyushu',rank:'default',name:"가고시마 다카마키 CC",nameJp:"鹿児島高牧カントリークラブ",lat:31.7620735,lng:130.539215,rating:4.2,count:365,address:"가고시마현 아이라시",phone:"+81-995-52-1603",hours:"07:00–18:00",closed:"연중무휴",korean:false,holes:18,par:72,fee:"14,000~",diff:3,desc:"천연 온천 대욕장 완비. 투어 레벨 페어웨이.",tips:"시내에서 약 40분. 숙박 패키지 추천.",tags:["18홀", "천연 온천", "명문"],tagTypes:["default", "green", "gold"]}
+];
+/* ── FAVORITES ── */
+let favs=JSON.parse(localStorage.getItem('golf_favs')||'[]');
+function isFav(id){return favs.includes(id)}
+function toggleFav(id,e){
+  if(e)e.stopPropagation();
+  if(isFav(id)){favs=favs.filter(f=>f!==id);showToast('즐겨찾기에서 제거됐습니다')}
+  else{favs.push(id);showToast('❤️ 즐겨찾기에 추가됐습니다')}
+  localStorage.setItem('golf_favs',JSON.stringify(favs));
+  updateFavUI();
+  if(curTab==='fav')renderFav();
+  else render();
+}
+function updateFavUI(){
+  const n=favs.length;
+  document.getElementById('favNum').textContent=n;
+  document.getElementById('statFav').textContent=n;
+  document.getElementById('favCount2').textContent='즐겨찾기 '+n+'개';
+  document.getElementById('favBtnH').classList.toggle('active',n>0);
+  document.getElementById('favEmpty').style.display=n?'none':'block';
+}
+
+/* ── FILTER ── */
+let curFilter='all',curTab='list';
+function setFilter(type,btn){
+  curFilter=type;
+  // 지도 료칸 모드일 때 curRF도 동기화
+  if(curTab==='map' && mapDisplayMode==='ryokan'){
+    curRF = type;
+  }
+  document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  render();
+  if(curTab==='map')updateMapMarkers();
+}
+function getFiltered(){
+  const q=document.getElementById('searchInput').value.toLowerCase();
+  return COURSES.filter(c=>{
+    if(q&&![c.name,c.address,c.desc,...c.tags,RC[c.region].name].some(s=>s.toLowerCase().includes(q)))return false;
+    if(curFilter==='top')return c.rating>=4.3;
+    if(curFilter==='easy')return c.diff<=2;
+    if(curFilter==='hard')return c.diff>=4;
+    if(curFilter==='korean')return c.korean;
+    if(RC[curFilter])return c.region===curFilter;
+    return true;
+  });
+}
+
+/* ── TAB ── */
+function switchTab(tab){
+  curTab=tab;
+  ['list','map','fav','ryokan'].forEach(t=>{
+    document.getElementById(t+'View').classList.toggle('show',t===tab);
+    const btn=document.getElementById('tab'+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn)btn.classList.toggle('active',t===tab);
+  });
+  document.getElementById('filtersWrap').style.display=(tab==='fav'||tab==='ryokan')?'none':'block';
+  if(tab==='map'){initMap();}
+  if(tab==='fav')renderFav();
+  if(tab==='ryokan')renderRyokan();
+}
+
+/* ── LIST ── */
+function diffHTML(d){
+  return '<div class="diff-stars">'+[1,2,3,4,5].map(i=>'<span class="ds '+(i<=d?'on':'off')+'">★</span>').join('')+'</div>';
+}
+function cardHTML(c,i){
+  const rc=RC[c.region];
+  return '<div class="card" id="card-'+c.id+'" onclick="toggleCard('+c.id+')">'+
+    '<div class="card-main">'+
+    '<div class="card-rank '+(c.rank==='gold'?'gold':'')+'">'+(c.rank==='gold'?'★':i+1)+'</div>'+
+    '<div class="card-body">'+
+    '<div class="card-name">'+c.name+'</div>'+
+    '<div class="card-jp">'+c.nameJp+'</div>'+
+    '<div class="badges"><span class="badge bh">⛳ '+c.holes+'홀 Par'+c.par+'</span><span class="badge bf">💴 ¥'+c.fee+'</span></div>'+
+    '<div class="card-meta"><span>📍 '+c.address+'</span><span>🕐 '+c.hours.split('/')[0].trim()+'</span></div>'+
+    '<div class="card-tags"><span class="tag td" style="background:'+rc.color+'18;color:'+rc.color+'">'+rc.name+'</span>'+
+    c.tags.map((t,j)=>'<span class="tag t'+c.tagTypes[j].charAt(0)+'">'+t+'</span>').join('')+'</div>'+
+    '</div>'+
+    '<div class="card-right">'+
+    '<button class="fav-icon" onclick="toggleFav('+c.id+',event)">'+(isFav(c.id)?'❤️':'🤍')+'</button>'+
+    '<div class="rating-n"><span class="rating-s">★</span>'+c.rating+'</div>'+
+    '<div class="rating-c">('+c.count.toLocaleString()+')</div>'+
+    '<span class="card-arrow">▾</span></div></div>'+
+    '<div class="card-detail">'+
+    '<div class="detail-grid">'+
+    '<div class="dc"><div class="dl">전화번호</div><div class="dv"><a href="tel:'+c.phone+'">'+c.phone+'</a></div></div>'+
+    '<div class="dc"><div class="dl">영업시간</div><div class="dv" style="font-size:11px">'+c.hours+'</div></div>'+
+    '<div class="dc"><div class="dl">휴무</div><div class="dv">'+c.closed+'</div></div>'+
+    '<div class="dc"><div class="dl">한국어</div><div class="dv">'+(c.korean?'✅ 가능':'❌ 불가')+'</div></div>'+
+    '<div class="dc"><div class="dl">홀수/파수</div><div class="dv">'+c.holes+'홀 Par'+c.par+'</div></div>'+
+    '<div class="dc"><div class="dl">그린피</div><div class="dv">¥'+c.fee+'</div></div>'+
+    '</div>'+
+    airportHTML(c.lat, c.lng)+
+    '<div class="hbox"><div class="hl">📋 코스 소개</div><div class="ht">'+c.desc+'</div></div>'+
+    '<div class="tbox"><div class="tl">💡 방문 팁</div><div class="tt">'+c.tips+'</div></div>'+
+    '<div class="card-actions">'+
+    '<button class="btn-info" onclick="openModal('+c.id+',event)">📋 상세 정보</button>'+
+    '<button class="btn-call" onclick="callCourse('+c.id+',event)">📞 전화</button>'+
+    '</div></div></div>';
+}
+function render(){
+  const list=getFiltered();
+  document.getElementById('resultCount').textContent=list.length+'개 코스';
+  document.getElementById('statTotal').textContent=COURSES.length;
+  document.getElementById('courseList').innerHTML=list.length
+    ?list.map((c,i)=>cardHTML(c,i)).join('')
+    :'<p style="text-align:center;color:#999;padding:40px 0;font-size:13px;">검색 결과가 없습니다.</p>';
+}
+function renderFav(){
+  const list=COURSES.filter(c=>isFav(c.id));
+  document.getElementById('favList').innerHTML=list.map((c,i)=>cardHTML(c,i)).join('');
+  updateFavUI();
+}
+function toggleCard(id){
+  const el=document.getElementById('card-'+id);
+  const wasOpen=el.classList.contains('open');
+  document.querySelectorAll('.card').forEach(c=>c.classList.remove('open'));
+  if(!wasOpen){el.classList.add('open');setTimeout(()=>el.scrollIntoView({behavior:'smooth',block:'nearest'}),60)}
+}
+
+/* ── MAP ── */
+let map=null,markers=[],mapMode='cluster',curRegion=null,mapDisplayMode='golf';
+function initMap(){
+  if(map){updateMapMarkers();showAirports();return}
+  map=L.map('map',{zoomControl:true}).setView([36.5,137.0],5);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
+  map.on('zoomend',()=>{if(mapMode==='detail'&&map.getZoom()<=6)showClusters()});
+  setTimeout(()=>{map.invalidateSize();showClusters();showAirports();},100);
+}
+function mColor(c){
+  if(c.rating>=4.4)return '#c9a84c';
+  if(c.rating>=4.2)return '#e53935';
+  return RC[c.region].color||'#1a5c3a';
+}
+function setMapMode(mode){
+  mapDisplayMode=mode;
+  // 료칸 모드 전환 시 현재 지역 필터 동기화 (초기화 X)
+  curRF = curFilter;
+  // 토글 버튼 UI 업데이트
+  document.getElementById('toggleGolf').classList.toggle('active', mode==='golf');
+  document.getElementById('toggleRyokan').classList.toggle('active', mode==='ryokan');
+  document.getElementById('toggleRyokan').classList.toggle('ryokan-active', mode==='ryokan');
+  // 범례 전환
+  document.getElementById('mapLegend').style.display=mode==='golf'?'block':'none';
+  document.getElementById('ryokanLegend').style.display=mode==='ryokan'?'block':'none';
+  // 클러스터 모드로 초기화
+  mapMode='cluster'; curRegion=null;
+  document.getElementById('mapBackBtn').classList.remove('show');
+  document.getElementById('regionBanner').classList.remove('show');
+  closePanel();
+  showClusters();
+}
+
+function showClusters(){
+  mapMode='cluster';curRegion=null;
+  markers.forEach(m=>m.remove());markers=[];
+  closePanel();
+  document.getElementById('mapBackBtn').classList.remove('show');
+  document.getElementById('regionBanner').classList.remove('show');
+  if(mapDisplayMode==='ryokan'){
+    // 료칸 클러스터 (curRF 필터 적용)
+    const filteredRyokans = curRF==='all' ? RYOKANS : RYOKANS.filter(r=>r.region===curRF);
+    const rgroups={};
+    filteredRyokans.forEach(r=>{if(!rgroups[r.region])rgroups[r.region]={count:0};rgroups[r.region].count++});
+    Object.entries(rgroups).forEach(([region,data])=>{
+      const color='#8B4513';
+      const center=REGION_CENTER[region]||[36,137];
+      const size=Math.max(58,Math.min(80,48+data.count*4));
+      const icon=L.divIcon({className:'',html:'<div class="cluster-marker" style="background:'+color+';width:'+size+'px;height:'+size+'px"><span class="cm-count">'+data.count+'</span><span class="cm-name">'+RC[region].name+'</span></div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
+      const marker=L.marker(center,{icon}).addTo(map);
+      marker.on('click',()=>showRyokanDetail(region));
+      markers.push(marker);
+    });
+    map.setView([36.5,137.0],5);
+    return;
+  }
+  // 골프장 클러스터 (기존)
+  const filtered=getFiltered();
+  const groups={};
+  filtered.forEach(c=>{if(!groups[c.region])groups[c.region]={count:0};groups[c.region].count++});
+  Object.entries(groups).forEach(([region,data])=>{
+    const color=RC[region].color||'#1a5c3a';
+    const center=REGION_CENTER[region]||[36,137];
+    const size=Math.max(64,Math.min(90,52+data.count*1.8));
+    const icon=L.divIcon({className:'',html:'<div class="cluster-marker" style="background:'+color+';width:'+size+'px;height:'+size+'px"><span class="cm-count">'+data.count+'</span><span class="cm-name">'+RC[region].name+'</span></div>',iconSize:[size,size],iconAnchor:[size/2,size/2]});
+    const marker=L.marker(center,{icon}).addTo(map);
+    marker.on('click',()=>showDetail(region));
+    markers.push(marker);
+  });
+  map.setView([36.5,137.0],5);
+}
+function showDetail(region){
+  mapMode='detail';curRegion=region;
+  markers.forEach(m=>m.remove());markers=[];
+  closePanel();
+  const filtered=getFiltered().filter(c=>c.region===region);
+  const color=RC[region].color||'#1a5c3a';
+  document.getElementById('mapBackBtn').classList.add('show');
+  const banner=document.getElementById('regionBanner');
+  banner.innerHTML='<span style="color:'+color+'">● '+RC[region].name+'</span> &nbsp;'+filtered.length+'개 코스';
+  banner.classList.add('show');
+  filtered.forEach(c=>{
+    const ccolor=mColor(c);
+    const icon=L.divIcon({className:'',html:'<div class="golf-marker" style="background:'+ccolor+'">'+c.rating+'</div>',iconSize:[34,34],iconAnchor:[17,17]});
+    const marker=L.marker([c.lat,c.lng],{icon}).addTo(map);
+    marker.on('click',()=>openPanel(c.id));
+    markers.push(marker);
+  });
+  if(filtered.length>0){const g=L.featureGroup(markers);map.fitBounds(g.getBounds().pad(0.2))}
+}
+function updateMapMarkers(){
+  if(mapMode==='cluster')showClusters();else showDetail(curRegion);
+}
+function openPanel(id){
+  const c=COURSES.find(x=>x.id===id);
+  const color=RC[c.region].color;
+  document.getElementById('panelContent').innerHTML=
+    '<div class="panel-hd" style="background:'+color+'">'
+    +'<h3>'+c.name+'</h3><p>'+c.nameJp+' · '+RC[c.region].name+' · '+c.address+'</p>'
+    +'<div class="panel-rat"><span class="prs">★★★★</span><span class="prn">'+c.rating+'</span><span class="prc">('+c.count.toLocaleString()+')</span></div>'
+    +'</div>'
+    +'<div class="panel-bd">'
+    +airportHTML(c.lat, c.lng)
+    +'<div style="margin-bottom:10px">'+diffHTML(c.diff)+'</div>'
+    +'<div class="panel-ig">'
+    +'<div class="pi"><div class="pil">영업시간</div><div class="piv">'+c.hours.split('/')[0].trim()+'</div></div>'
+    +'<div class="pi"><div class="pil">휴무</div><div class="piv">'+c.closed+'</div></div>'
+    +'<div class="pi"><div class="pil">전화</div><div class="piv"><a href="tel:'+c.phone+'" style="color:'+color+'">'+c.phone+'</a></div></div>'
+    +'<div class="pi"><div class="pil">한국어</div><div class="piv">'+(c.korean?'✅ 가능':'❌ 불가')+'</div></div>'
+    +'</div>'
+    +'<div class="panel-sec"><div class="panel-sec-t">📋 코스 소개</div><p>'+c.desc+'</p></div>'
+    +'<div class="panel-sec"><div class="panel-sec-t">💡 방문 팁</div><p>'+c.tips+'</p></div>'
+    +'<div class="panel-acts">'
+    +'<button class="pb1" style="background:'+color+'" onclick="openModal('+c.id+',null)">📋 상세</button>'
+    +'<button class="pb2" style="color:'+color+';border-color:'+color+'" onclick="callCourse('+c.id+',null)">📞 전화</button>'
+    +'</div></div>';
+  document.getElementById('mapPanel').classList.add('open');
+}
+function showRyokanDetail(region){
+  mapMode='detail'; curRegion=region;
+  markers.forEach(m=>m.remove()); markers=[];
+  closePanel();
+  const ryokans=(curRF==='all'?RYOKANS:RYOKANS.filter(r=>r.region===curRF)).filter(r=>r.region===region);
+  const color='#8B4513';
+  document.getElementById('mapBackBtn').classList.add('show');
+  const banner=document.getElementById('regionBanner');
+  banner.innerHTML='<span style="color:'+color+'">🏯 '+RC[region].name+'</span> &nbsp;'+ryokans.length+'개 료칸';
+  banner.classList.add('show');
+  const bounds=[];
+  ryokans.forEach(r=>{
+    const rcolor=r.price==='저렴'?'#A0522D':r.price==='중급'?'#D2691E':'#8B4513';
+    const icon=L.divIcon({className:'',html:'<div class="golf-marker" style="background:'+rcolor+';font-size:14px">🏯</div>',iconSize:[34,34],iconAnchor:[17,17]});
+    const marker=L.marker([r.lat,r.lng],{icon}).addTo(map);
+    marker.on('click',()=>openRyokanPanel(r.id));
+    bounds.push([r.lat,r.lng]);
+    markers.push(marker);
+  });
+  if(bounds.length>0)map.fitBounds(bounds,{padding:[40,40]});
+}
+
+function callRyokanPhone(phone){
+  window.location.href='tel:'+phone;
+}
+function searchRyokanGoogle(name, nameJp){
+  window.open('https://www.google.com/search?q='+encodeURIComponent(name+' '+nameJp),'_blank');
+}
+
+function openRyokanPanel(id){
+  var r = RYOKANS.find(function(x){ return x.id===id; });
+  if(!r) return;
+  var rc=RC[r.region]||{name:r.region,color:'#555'};
+  var phoneBtn = r.phone && r.phone !== '문의 필요'
+    ? '<button class="pb1" style="background:#8B4513" onclick="callRyokan('+r.id+')">📞 전화</button>'
+    : '';
+  var searchBtn = '<button class="pb2" style="color:#8B4513;border-color:#8B4513;flex:1" onclick="searchRyokan('+r.id+')">🔍 검색</button>';
+  var tags = r.tags.map(function(t){ return '<span class="tag td" style="margin:2px">'+t+'</span>'; }).join('');
+
+
+  document.getElementById('panelContent').innerHTML=
+    '<div class="panel-hd" style="background:#8B4513">'
+    +'<h3>'+r.name+'</h3>'
+    +'<p>'+r.nameJp+' · '+rc.name+' · '+r.address+'</p>'
+    +'<div class="panel-rat"><span class="prs">★★★★</span><span class="prn">'+r.rating+'</span><span class="prc">('+r.count.toLocaleString()+')</span></div>'
+    +'</div>'
+    +'<div class="panel-bd">'
+    +'<div style="margin-bottom:10px">'
+    +'<span style="background:#FFF3E0;color:#8B4513;font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px">✦ '+r.feature+'</span>'
+    +'</div>'
+    +airportHTML(r.lat, r.lng)
+    +'<div class="panel-ig">'
+    +'<div class="pi"><div class="pil">요금 수준</div><div class="piv">'+r.price+'</div></div>'
+    +'<div class="pi"><div class="pil">📞 전화</div><div class="piv">'+(r.phone!=='문의 필요'?r.phone:'문의 필요')+'</div></div>'
+    +'</div>'
+    +tags
+    +'<div class="panel-sec" style="margin-top:12px"><div class="panel-sec-t" style="color:#8B4513">📋 소개</div><p>'+r.desc+'</p></div>'
+    +'<div class="panel-acts">'+phoneBtn+searchBtn+'</div>'
+    +'</div>';
+  document.getElementById('mapPanel').classList.add('open');
+}
+
+function closePanel(){document.getElementById('mapPanel').classList.remove('open')}
+
+/* ── MODAL ── */
+function callCourse(id,e){if(e)e.stopPropagation();window.location.href='tel:'+COURSES.find(c=>c.id===id).phone}
+function openModal(id,e){
+  if(e)e.stopPropagation();
+  const c=COURSES.find(x=>x.id===id);
+  document.getElementById('mHd').innerHTML='<h3>'+c.name+'</h3><p>'+RC[c.region].name+' · '+c.address+'</p>';
+  document.getElementById('mBd').innerHTML=
+    '<div class="info-grid">'+
+    '<div class="ig-item" style="background:var(--green-pale)"><div class="ig-l" style="color:var(--green)">⛳ 코스 정보</div><div class="ig-v">'+c.holes+'홀 Par'+c.par+'</div></div>'+
+    '<div class="ig-item" style="background:#fdf4dc"><div class="ig-l" style="color:#8a6b1a">💴 그린피</div><div class="ig-v">¥'+c.fee+'</div></div>'+
+    '<div class="ig-item" style="background:#fce4ec"><div class="ig-l" style="color:#c62828">🎯 난이도</div><div class="ig-v">'+diffHTML(c.diff)+'</div></div>'+
+    '<div class="ig-item" style="background:#e8f4fd"><div class="ig-l" style="color:#1565c0">📞 전화</div><div class="ig-v"><a href="tel:'+c.phone+'" style="color:#1565c0">'+c.phone+'</a></div></div>'+
+    '</div>'+
+    airportHTML(c.lat, c.lng)+
+    '<div class="hbox"><div class="hl">📋 코스 소개</div><div class="ht">'+c.desc+'</div></div>'+
+    '<div class="tbox" style="margin:10px 0 0"><div class="tl">💡 방문 팁</div><div class="tt">'+c.tips+'</div></div>';
+  document.getElementById('mActs').innerHTML=
+    '<button class="btn-close" onclick="closeModal()">닫기</button>'+
+    '<button class="btn-call2" onclick="callCourse('+c.id+',event);closeModal()">📞 전화하기</button>';
+  document.getElementById('modalBg').classList.add('show');
+  document.body.style.overflow='hidden';
+}
+function closeModal(){document.getElementById('modalBg').classList.remove('show');document.body.style.overflow=''}
+function bgClick(e){if(e.target===document.getElementById('modalBg'))closeModal()}
+
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2200);
+}
+
+
+// ── 료칸 데이터 ──
+var RYOKANS = [{"id": 1, "region": "kumamoto", "name": "오쓰키엔", "nameJp": "おつき苑", "lat": 32.9540211, "lng": 130.7262575, "rating": 4.2, "count": 149, "address": "기타구 우에키온센", "phone": "+81-96-274-6339", "price": "중급", "feature": "온천 노천탕 객실", "desc": "우에키 온천 소재 료칸. 객실 전용 노천탕 보유. 진한 온천수와 정원 뷰가 인기.", "tags": ["객실 노천탕", "온천", "정원"]}, {"id": 2, "region": "kumamoto", "name": "구마모토 와스키 쓰카사칸", "nameJp": "熊本ワスキ司館", "lat": 32.8046815, "lng": 130.7115744, "rating": 3.9, "count": 617, "address": "주오구 가미토리초", "phone": "+81-96-352-5101", "price": "저렴", "feature": "시내 중심 위치", "desc": "구마모토성 도보 20분. 시내 중심에 위치한 전통 료칸. 접근성 최고.", "tags": ["시내 중심", "전통", "접근성"]}, {"id": 3, "region": "kumamoto", "name": "하나노하나", "nameJp": "藪乃花", "lat": 32.7824694, "lng": 130.736175, "rating": 4.6, "count": 70, "address": "주오구 구와미즈", "phone": "+81-96-340-0727", "price": "고급", "feature": "5객실 프라이빗 부티크", "desc": "단 5개 객실만 운영하는 프라이빗 부티크 료칸. 강 뷰 객실과 전용 대형 욕탕 보유.", "tags": ["부티크", "강변 뷰", "프라이빗"]}, {"id": 4, "region": "hokkaido", "name": "도카치가와 무어 온센 세이쟈쿠보", "nameJp": "十勝川モール温泉静寂坊", "lat": 42.931917, "lng": 143.3048106, "rating": 4.5, "count": 253, "address": "오토후케초 도카치가와온센", "phone": "+81-155-65-0805", "price": "고급", "feature": "모르 온천 명소", "desc": "홋카이도 도카치가와 온천. 식물성 모르 온천수로 유명. 미니멀리즘 디자인과 철판구이·가이세키 식사 제공.", "tags": ["모르 온천", "가이세키", "고급"]}, {"id": 5, "region": "hokkaido", "name": "칸포 료칸 와카마쓰", "nameJp": "割烹旅館若松", "lat": 41.7742137, "lng": 140.7848998, "rating": 4.6, "count": 240, "address": "하코다테시 유노카와초", "phone": "+81-138-86-9626", "price": "고급", "feature": "미슐랭 가이드 선정", "desc": "하코다테 유노카와 온천 소재. 미슐랭 가이드 홋카이도 선정. 가이세키 요리 최고 수준. 오션뷰 객실.", "tags": ["미슐랭", "오션뷰", "가이세키"]}, {"id": 6, "region": "hokkaido", "name": "온센 료칸 유엔 삿포로", "nameJp": "温泉旅館湯縁札幌", "lat": 43.0622098, "lng": 141.3456683, "rating": 4.3, "count": 894, "address": "삿포로시 주오구", "phone": "+81-11-271-1126", "price": "중급", "feature": "삿포로 시내 온천 료칸", "desc": "삿포로 시내 접근성 우수. 영어 소통 가능. 천연 온천과 유카타 제공. 가성비 우수.", "tags": ["시내", "영어 가능", "온천"]}, {"id": 7, "region": "tohoku", "name": "사칸", "nameJp": "佐勘", "lat": 38.2277893, "lng": 140.720437, "rating": 4.2, "count": 2307, "address": "센다이시 다이하쿠구 아키우온센", "phone": "+81-22-398-2233", "price": "고급", "feature": "G7 개최 역사 명소", "desc": "센다이 아키우 온천 대표 료칸. G7 정상회의 2회 개최. 5개 온천과 가이세키·뷔페 식사 제공.", "tags": ["G7 개최", "역사적", "온천 5개"]}, {"id": 8, "region": "tohoku", "name": "아키우 온센 사료 소엔", "nameJp": "秋保温泉茶寮宗園", "lat": 38.226231, "lng": 140.723948, "rating": 4.5, "count": 206, "address": "센다이시 다이하쿠구 아키우", "phone": "+81-22-398-2311", "price": "고급", "feature": "객실 전용 노천탕", "desc": "아키우 온천 최고급 료칸. 객실 전용 노천탕. 전담 안내인 서비스. 셔틀버스 운행.", "tags": ["객실 노천탕", "최고급", "셔틀버스"]}, {"id": 9, "region": "tohoku", "name": "아이사키 료칸", "nameJp": "愛咲旅館", "lat": 38.2539678, "lng": 140.8763608, "rating": 4.6, "count": 156, "address": "센다이시 아오바구", "phone": "+81-22-264-0700", "price": "저렴", "feature": "160년 역사 전통 료칸", "desc": "160년 역사의 센다이 전통 료칸. 역에서 도보권. 저렴한 요금에 정통 일본식 료칸 체험 가능.", "tags": ["160년 역사", "시내", "가성비"]}, {"id": 10, "region": "kanto", "name": "유엔베테이 다이타", "nameJp": "湯縁別邸代田", "lat": 35.6583326, "lng": 139.6622315, "rating": 4.5, "count": 487, "address": "도쿄도 세타가야구", "phone": "+81-3-5431-3101", "price": "고급", "feature": "도쿄 도심 속 은신처", "desc": "도쿄 시내 힐링 스팟. 천연 온천과 고급 일본식 조식. 아늑한 주택가 분위기.", "tags": ["도쿄 도심", "온천", "조식 포함"]}, {"id": 11, "region": "kanto", "name": "료칸 가모가와", "nameJp": "RYOKAN KAMOGAWA", "lat": 35.7121877, "lng": 139.7957151, "rating": 4.7, "count": 265, "address": "도쿄도 다이토구 아사쿠사", "phone": "+81-3-3843-2681", "price": "중급", "feature": "아사쿠사 전통 료칸", "desc": "아사쿠사 중심 전통 료칸. 영어 스태프 상주. 프라이빗 온천 예약 가능. 도쿄 최고 위치.", "tags": ["아사쿠사", "영어 가능", "프라이빗 온천"]}, {"id": 12, "region": "kanto", "name": "하나코호로", "nameJp": "花粉楼", "lat": 35.6313736, "lng": 139.7356844, "rating": 4.7, "count": 61, "address": "도쿄도 미나토구 다카나와", "phone": "+81-3-3447-1117", "price": "최고급", "feature": "그랜드 프린스 호텔 내 료칸", "desc": "그랜드 프린스 호텔 타카나와 내 최고급 일본식 료칸. 정통 가이세키·일본 문화 체험. 프라이빗 라운지 이용.", "tags": ["최고급", "문화 체험", "가이세키"]}, {"id": 13, "region": "chubu", "name": "겐지코", "nameJp": "源氏香", "lat": 34.720525, "lng": 136.8956339, "rating": 3.8, "count": 505, "address": "아이치현 치타군 미나미치타", "phone": "+81-569-62-3737", "price": "중급", "feature": "오션뷰 온천 료칸", "desc": "나고야에서 1시간. 오션뷰 객실. 옥상 노천탕에서 바다 전망. 부근 해산물 요리 일품.", "tags": ["오션뷰", "해산물", "노천탕"]}, {"id": 14, "region": "chubu", "name": "힐즈 하우스 2nd", "nameJp": "Hills House 2nd", "lat": 34.8908034, "lng": 136.838203, "rating": 4.9, "count": 27, "address": "아이치현 도코나메시", "phone": "+81-569-58-4826", "price": "저렴", "feature": "150년 전통 고민카 료칸", "desc": "150년 역사 전통 일본 고민카 료칸. 도예 도시 도코나메 소재. 주인 내외의 따뜻한 환대와 수제 조식.", "tags": ["고민카", "150년 역사", "홈메이드 조식"]}, {"id": 15, "region": "chubu", "name": "쌀 카이후우", "nameJp": "粋 海風", "lat": 34.7232121, "lng": 136.8866603, "rating": 3.9, "count": 602, "address": "아이치현 치타군 미나미치타", "phone": "+81-569-62-2222", "price": "중급", "feature": "오션뷰 파노라마", "desc": "오션뷰 코너 객실. 프라이빗 온천 3곳 예약 가능. 해산물 요리 저녁식사 수준 높음.", "tags": ["오션뷰", "프라이빗 온천", "해산물"]}, {"id": 16, "region": "kinki", "name": "료칸 유쇼칸", "nameJp": "RYOKAN優勝館", "lat": 34.7206994, "lng": 135.5719806, "rating": 4.8, "count": 34, "address": "오사카부 모리구치시", "phone": "+81-6-6997-3556", "price": "저렴", "feature": "오사카 근교 전통 료칸", "desc": "오사카 교외 조용한 전통 료칸. 드라이 가든 뷰 히노키 전용탕. 아늑한 일본식 객실.", "tags": ["히노키탕", "조용한", "전용탕"]}, {"id": 17, "region": "kinki", "name": "오사카 카에데 하루 료칸", "nameJp": "Osaka Kaede Haru Ryokan", "lat": 34.6406738, "lng": 135.4943023, "rating": 4.9, "count": 18, "address": "오사카시 니시나리구", "phone": "+81-90-6625-6678", "price": "저렴", "feature": "프라이빗 미니 온천 보유", "desc": "오사카 도심 소형 료칸. 프라이빗 미니 온천 전용. 주인 직접 운영으로 친절한 서비스.", "tags": ["프라이빗 온천", "가성비", "소형"]}, {"id": 18, "region": "kinki", "name": "호시 SASA", "nameJp": "星のSASA", "lat": 34.6683636, "lng": 135.5118413, "rating": 4.5, "count": 4, "address": "오사카시 주오구 고즈", "phone": "문의 필요", "price": "중급", "feature": "도톤보리 근처", "desc": "도톤보리 도보권 위치. 넓은 가족 객실. 편의점 근접.", "tags": ["도톤보리 근처", "가족 객실", "접근성"]}, {"id": 19, "region": "chugoku", "name": "이와소", "nameJp": "岩惣", "lat": 34.2951096, "lng": 132.3223151, "rating": 4.6, "count": 832, "address": "히로시마현 하쓰카이치시 미야지마", "phone": "+81-829-44-2233", "price": "고급", "feature": "미야지마 섬 최고 료칸", "desc": "미야지마 섬 소재 일본 대표 료칸. 오토리이 도보권. 천연 온천과 전통 가이세키. 셔틀버스 운행.", "tags": ["미야지마", "천연 온천", "가이세키"]}, {"id": 20, "region": "chugoku", "name": "쥬케이소", "nameJp": "Jukeiso", "lat": 34.2946705, "lng": 132.3169764, "rating": 4.5, "count": 316, "address": "히로시마현 하쓰카이치시 미야지마", "phone": "+81-829-44-0300", "price": "고급", "feature": "오토리이 전망 객실", "desc": "미야지마 섬 도리이 게이트 전망 객실. 가이세키 식사 최고 평가. 셔틀 및 짐 픽업 서비스.", "tags": ["도리이 전망", "가이세키", "셔틀버스"]}, {"id": 21, "region": "chugoku", "name": "히로시마노 야도 아이오이", "nameJp": "広島の宿相生", "lat": 34.395441, "lng": 132.454451, "rating": 4.1, "count": 260, "address": "히로시마시 나카구", "phone": "+81-82-247-9331", "price": "중급", "feature": "평화기념공원 정면", "desc": "히로시마 평화기념공원 정면 위치. 7층 온천에서 원폭돔 조망. 교통 편리.", "tags": ["평화기념공원", "원폭돔 뷰", "온천"]}, {"id": 22, "region": "shikoku", "name": "시키시마칸", "nameJp": "敷島館", "lat": 34.1874882, "lng": 133.8187205, "rating": 4.4, "count": 1156, "address": "가가와현 나카타도군 고토히라", "phone": "+81-877-58-8005", "price": "중급", "feature": "곤피라상 참배길 입구", "desc": "곤피라 신사 참배길 입구 위치. 전통 료칸 리노베이션. 4개 세미프라이빗 온천. 야식 소바 제공.", "tags": ["곤피라상", "온천", "야식 소바"]}, {"id": 23, "region": "shikoku", "name": "이야노야도 가즈라야", "nameJp": "祖谷の宿かずら橋", "lat": 33.878123, "lng": 133.840054, "rating": 4.6, "count": 292, "address": "도쿠시마현 미요시시", "phone": "+81-883-87-2831", "price": "고급", "feature": "이야 계곡 절경 료칸", "desc": "이야 계곡 소재 최고 료칸. 가즈라 덩굴다리 근처. 실내외 노천탕. 가이세키 요리 5성급.", "tags": ["이야 계곡", "노천탕", "가이세키"]}, {"id": 24, "region": "shikoku", "name": "구로시오 혼진", "nameJp": "黒潮本陣", "lat": 33.321649, "lng": 133.2371005, "rating": 4.3, "count": 860, "address": "고치현 나카토사", "phone": "+81-889-52-3500", "price": "중급", "feature": "태평양 오션뷰 온천", "desc": "태평양 절벽 위 온천 료칸. 바다 조망 실내외 온천. 고치 해산물 요리 일품.", "tags": ["태평양 뷰", "오션뷰 온천", "해산물"]}, {"id": 25, "region": "kyushu", "name": "다이마루 벳쇼", "nameJp": "大丸別荘", "lat": 33.4898138, "lng": 130.5137152, "rating": 4.4, "count": 988, "address": "후쿠오카현 치쿠시노시", "phone": "+81-92-924-3939", "price": "고급", "feature": "160년 전통 최고급 료칸", "desc": "창업 160년 후쿠오카 대표 료칸. 중앙 정원 아름다움. 기블리 영화 같은 대형 천연 온천. 넓은 고급 객실.", "tags": ["160년 역사", "천연 온천", "최고급"]}, {"id": 26, "region": "kyushu", "name": "코민카 네리", "nameJp": "古民家Neri", "lat": 33.7068203, "lng": 130.5918984, "rating": 4.8, "count": 101, "address": "후쿠오카현 미야와카시", "phone": "+81-949-52-6380", "price": "고급", "feature": "객실 전용 온천 보유", "desc": "후쿠오카 외곽 프라이빗 고민카 료칸. 객실 전용 온천. 가이세키 저녁·조식 수준 최고. 직원 픽업 서비스.", "tags": ["객실 전용 온천", "고민카", "가이세키"]}, {"id": 27, "region": "kyushu", "name": "다카마쓰 하나쥬카이", "nameJp": "花樹海", "lat": 34.3429606, "lng": 134.0244086, "rating": 4.3, "count": 990, "address": "가가와현 다카마쓰시", "phone": "+81-87-861-5580", "price": "고급", "feature": "다카마쓰 시내 전망 노천탕", "desc": "다카마쓰 산 위 전망 료칸. 객실 전용 온천. 세토 내해 전망. 셔틀버스 운행. 가이세키 식사.", "tags": ["세토 내해 뷰", "객실 온천", "셔틀버스"]}, {"id": 28, "region": "okinawa", "name": "오키나와 료칸 추천", "nameJp": "沖縄リゾートホテル", "lat": 26.5108, "lng": 127.9297, "rating": 4.5, "count": 300, "address": "오키나와현 나고시", "phone": "문의 필요", "price": "고급", "feature": "오키나와 리조트 료칸", "desc": "오키나와 에메랄드 바다 전망 리조트 료칸. 류큐 전통 요리와 온천 스파. 연중 온난한 기후.", "tags": ["오션뷰", "류큐 요리", "리조트"]}, {"id": 29, "region": "kumamoto", "name": "유메오이소우", "nameJp": "夢追荘", "lat": 32.973533, "lng": 131.0371207, "rating": 4.0, "count": 1807, "address": "아소시 우치노마키온센", "phone": "+81-967-32-0622", "price": "중급", "feature": "프라이빗 온천 15개 보유", "desc": "아소 우치노마키 온천 소재. 프라이빗 온천 15개. 뷔페 식사+오픈바 제공. 시설 다소 노후됐지만 온천은 최고 수준.", "tags": ["프라이빗 온천 15개", "뷔페", "오픈바"]}, {"id": 30, "region": "kumamoto", "name": "아소 바이엔 스파 리조트", "nameJp": "阿蘇梅園SPAリゾート", "lat": 32.9030692, "lng": 130.989958, "rating": 3.9, "count": 765, "address": "미나미아소무라 시모노", "phone": "+81-50-3773-4691", "price": "중급", "feature": "아소 절경 스파 온천 리조트", "desc": "아소 미나미 소재 스파 리조트. 전통 다다미 객실. 샤부샤부 저녁식사 인기. 맞은편 로손 편의점 편리. 스태프 친절.", "tags": ["스파", "다다미 객실", "샤부샤부"]}, {"id": 31, "region": "kumamoto", "name": "료칸 미나와", "nameJp": "RYOKAN MINAWA", "lat": 32.846182, "lng": 131.005448, "rating": 4.5, "count": 290, "address": "미나미아소무라 가인", "phone": "+81-967-67-4188", "price": "고급", "feature": "독채 10객실 프라이빗 료칸", "desc": "약 10,000 부지에 독채 10객실만 운영. 전 객실 실내외 전용 온천. 아소 5악 전망. 물 위 무대 퍼포먼스 디너. 최고급 서비스.", "tags": ["독채", "전용 온천", "아소 전망"]}, {"id": 32, "region": "kumamoto", "name": "지고쿠 온센 세이후소", "nameJp": "地獄温泉清風荘", "lat": 32.8601553, "lng": 131.0361409, "rating": 4.4, "count": 770, "address": "미나미아소무라 가와요", "phone": "+81-967-67-0005", "price": "고급", "feature": "200년 역사 유황 온천", "desc": "창업 200년 역사 유황 온천 료칸. pH 2.8 강산성 온천수. 남녀 혼탕 야외 온천 보유. 일본 내 희귀 진흙 온천수. 음식 최고 수준.", "tags": ["200년 역사", "유황 온천", "혼탕"]}, {"id": 33, "region": "kumamoto", "name": "아소겐", "nameJp": "阿蘇元", "lat": 32.934736, "lng": 131.0402001, "rating": 4.6, "count": 235, "address": "아소시 오토히메", "phone": "+81-967-32-2986", "price": "저렴", "feature": "프라이빗 온천 4개 가성비", "desc": "아소산 근처 조용한 전통 료칸. 프라이빗 온천 4개. 소 야키니쿠 저녁식사 극찬. 영어 소통 가능. 가성비 최고.", "tags": ["프라이빗 온천", "야키니쿠", "가성비"]}, {"id": 34, "region": "kumamoto", "name": "호시노 리조트 KAI 아소", "nameJp": "星野リゾート界阿蘇", "lat": 33.0806161, "lng": 131.19365, "rating": 4.2, "count": 436, "address": "오이타현 구스군 고코노에", "phone": "+81-50-3134-8092", "price": "고급", "feature": "객실 전용 온천 삼림 리조트", "desc": "호시노 리조트 KAI 브랜드. 전 객실 전용 야외 온천. 아소 5악 조망 레스토랑. 숲속 독채 형식. 최고급 가이세키 식사.", "tags": ["호시노 리조트", "객실 온천", "가이세키"]}, {"id": 35, "region": "kumamoto", "name": "다케노쿠라 산소", "nameJp": "竹の蔵山荘", "lat": 32.8442519, "lng": 131.0447913, "rating": 4.4, "count": 533, "address": "미나미아소무라 나카마쓰", "phone": "+81-967-67-2980", "price": "고급", "feature": "프랑스-일본 퓨전 요리 명소", "desc": "미나미아소 고급 료칸. 프랑스-일본 퓨전 가이세키 극찬. 전용 야외 온천. 아소 하이킹 접근 최적. 서비스 5성급.", "tags": ["퓨전 가이세키", "전용 온천", "하이킹"]}, {"id": 36, "region": "kumamoto", "name": "료칸 코노마마", "nameJp": "RYOKAN KONOMAMA", "lat": 32.8469768, "lng": 130.9944193, "rating": 4.4, "count": 137, "address": "미나미아소무라 가인", "phone": "문의 필요", "price": "고급", "feature": "아소 전망 프라이빗 온천", "desc": "성인 전용 프라이빗 리조트. 아소 산맥 전망 전용 온천. 객실 넓고 깨끗함. 식사 미포함 플랜. 조용하고 프라이빗한 분위기.", "tags": ["성인 전용", "아소 전망", "전용 온천"]}, {"id": 37, "region": "kumamoto", "name": "하나레노야도 센노모리", "nameJp": "離れの宿千の森", "lat": 32.9276035, "lng": 131.0125146, "rating": 4.3, "count": 50, "address": "아소시 나가쿠사", "phone": "+81-967-35-6811", "price": "고급", "feature": "미슐랭 레스토랑 2객실 료칸", "desc": "단 2객실만 운영하는 완전 프라이빗 료칸. 미슐랭 가이드 레스토랑 운영. 360도 녹음 속 위치. 영어 가능 스태프.", "tags": ["미슐랭", "2객실", "완전 프라이빗"]}];
+
+// ── 료칸 유틸 함수 ──
+function callRyokanMap(id) { callRyokan(id); }
+function searchRyokanMap(id) { searchRyokan(id); }
+
+// ── 료칸 필터 ──
+var curRF = 'all';
+function setRyokanFilter(type, btn) {
+  curRF = type;
+  document.querySelectorAll('#ryokanView .fb').forEach(function(b){ b.classList.remove('active'); });
+  btn.classList.add('active');
+  renderRyokan();
+}
+
+// ── 료칸 카드 ──
+function pClass(p) {
+  if (p === '저렴') return 'price-low';
+  if (p === '중급') return 'price-mid';
+  if (p === '고급') return 'price-high';
+  return 'price-premium';
+}
+
+function ryokanCard(r) {
+  var rc = RC[r.region] || {name: r.region, color: '#555'};
+  var phoneBtn = r.phone && r.phone !== '문의 필요'
+    ? '<button class="btn-info" style="flex:1" onclick="callRyokan(' + r.id + ')">📞 전화</button>'
+    : '<button class="btn-info" style="flex:1;background:#aaa;cursor:default">📞 문의 필요</button>';
+  var searchBtn = '<button class="btn-call" onclick="searchRyokan(' + r.id + ')">🔍 검색</button>';
+  var tags = r.tags.map(function(t){ return '<span class="tag td">' + t + '</span>'; }).join('');
+  var distInfo = airportHTML(r.lat, r.lng);
+  var html = '';
+  html += '<div class="card" style="border-left:3px solid #8B4513">';
+  html += '<div class="card-main">';
+  html += '<div class="card-rank" style="background:#FFF3E0;color:#8B4513;font-size:16px">🏯</div>';
+  html += '<div class="card-body">';
+  html += '<div class="card-name">' + r.name + '</div>';
+  html += '<div class="card-jp">' + r.nameJp + '</div>';
+  html += '<div class="ryokan-feature">✦ ' + r.feature + '</div>';
+  html += '<div class="card-meta"><span>📍 ' + r.address + '</span></div>';
+  html += '<div class="card-tags">';
+  html += '<span class="tag td" style="background:' + rc.color + '18;color:' + rc.color + '">' + rc.name + '</span>';
+  html += '<span class="price-badge ' + pClass(r.price) + '">' + r.price + '</span>';
+  html += tags;
+  html += '</div></div>';
+  html += '<div class="card-right">';
+  html += '<div class="rating-n"><span class="rating-s">★</span>' + r.rating + '</div>';
+  html += '<div class="rating-c">(' + r.count.toLocaleString() + ')</div>';
+  html += '</div></div>';
+  html += '<div style="padding:0 15px 14px">';
+  html += distInfo;
+  html += '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">' + r.desc + '</div></div>';
+  html += '<div style="display:flex;gap:8px">' + phoneBtn + searchBtn + '</div>';
+  html += '</div></div>';
+  return html;
+}
+function renderRyokan() {
+  var list = curRF === 'all' ? RYOKANS : RYOKANS.filter(function(r){ return r.region === curRF; });
+  document.getElementById('ryokanCount').textContent = list.length + '개 료칸';
+  document.getElementById('ryokanList').innerHTML = list.map(function(r){ return ryokanCard(r); }).join('');
+}
+
+// ── 료칸 지도 패널 ──
+
+
+// ── 공항 데이터 ──
+var AIRPORTS = [
+  {code:'NRT',name:'나리타 국제공항',nameEn:'Narita Intl',lat:35.7647,lng:140.3864,city:'도쿄'},
+  {code:'HND',name:'하네다 공항',nameEn:'Haneda Intl',lat:35.5494,lng:139.7798,city:'도쿄'},
+  {code:'KIX',name:'간사이 국제공항',nameEn:'Kansai Intl',lat:34.4269,lng:135.2440,city:'오사카'},
+  {code:'ITM',name:'이타미 공항',nameEn:'Itami Intl',lat:34.7855,lng:135.4386,city:'오사카'},
+  {code:'NGO',name:'주부 센트레아 공항',nameEn:'Chubu Centrair',lat:34.8583,lng:136.8054,city:'나고야'},
+  {code:'FUK',name:'후쿠오카 공항',nameEn:'Fukuoka Intl',lat:33.5859,lng:130.4508,city:'후쿠오카'},
+  {code:'CTS',name:'신치토세 공항',nameEn:'New Chitose Intl',lat:42.7752,lng:141.6922,city:'삿포로'},
+  {code:'OKA',name:'나하 공항',nameEn:'Naha Intl',lat:26.1958,lng:127.6461,city:'오키나와'},
+  {code:'KMJ',name:'구마모토 공항',nameEn:'Kumamoto Intl',lat:32.8373,lng:130.8554,city:'구마모토'},
+  {code:'KOJ',name:'가고시마 공항',nameEn:'Kagoshima Intl',lat:31.8034,lng:130.7194,city:'가고시마'},
+  {code:'NGS',name:'나가사키 공항',nameEn:'Nagasaki Intl',lat:32.9169,lng:129.9144,city:'나가사키'},
+  {code:'SDJ',name:'센다이 공항',nameEn:'Sendai Intl',lat:38.1397,lng:140.9170,city:'센다이'},
+  {code:'HIJ',name:'히로시마 공항',nameEn:'Hiroshima Intl',lat:34.4361,lng:132.9194,city:'히로시마'},
+  {code:'TAK',name:'다카마쓰 공항',nameEn:'Takamatsu Intl',lat:34.2141,lng:134.0155,city:'다카마쓰'},
+  {code:'KCZ',name:'고치 료마 공항',nameEn:'Kochi Ryoma Intl',lat:33.5461,lng:133.6694,city:'고치'},
+  {code:'ASJ',name:'아마미 공항',nameEn:'Amami Intl',lat:28.4308,lng:129.7125,city:'아마미'},
+  {code:'MYJ',name:'마쓰야마 공항',nameEn:'Matsuyama Intl',lat:33.8272,lng:132.7000,city:'마쓰야마'},
+  {code:'OIT',name:'오이타 공항',nameEn:'Oita Intl',lat:33.4794,lng:131.7369,city:'오이타'},
+  {code:'KKJ',name:'기타큐슈 공항',nameEn:'Kitakyushu Intl',lat:33.8459,lng:130.9786,city:'기타큐슈'},
+  {code:'KMQ',name:'고마쓰 공항',nameEn:'Komatsu Intl',lat:36.3946,lng:136.4066,city:'가나자와'},
+];
+
+var airportMarkers = [];
+
+function showAirports(){
+  airportMarkers.forEach(function(m){ m.remove(); });
+  airportMarkers = [];
+  AIRPORTS.forEach(function(a){
+    var icon = L.divIcon({
+      className:'',
+      html:'<div class="airport-marker" title="'+a.name+' ('+a.code+')">✈️</div>',
+      iconSize:[36,36], iconAnchor:[18,18]
+    });
+    var marker = L.marker([a.lat, a.lng], {icon:icon}).addTo(map);
+    marker.bindPopup(
+      '<div style="font-family:Noto Sans KR,sans-serif;min-width:140px">'
+      +'<div style="font-weight:700;font-size:13px;margin-bottom:3px">✈️ '+a.name+'</div>'
+      +'<div style="font-size:11px;color:#555;margin-bottom:2px">'+a.nameEn+'</div>'
+      +'<div style="font-size:12px;color:#1565c0;font-weight:700">'+a.code+' · '+a.city+'</div>'
+      +'</div>',
+      {maxWidth:200}
+    );
+    airportMarkers.push(marker);
+  });
+}
+
+function hideAirports(){
+  airportMarkers.forEach(function(m){ m.remove(); });
+  airportMarkers = [];
+}
+
+
+// ── 거리 계산 (Haversine) ──
+function calcDist(lat1, lng1, lat2, lng2){
+  var R = 6371;
+  var dLat = (lat2-lat1) * Math.PI/180;
+  var dLng = (lng2-lng1) * Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2)
+    + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)
+    * Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function nearestAirports(lat, lng, count){
+  return AIRPORTS.map(function(a){
+    return {airport:a, dist:Math.round(calcDist(lat,lng,a.lat,a.lng))};
+  }).sort(function(a,b){ return a.dist-b.dist; }).slice(0, count||3);
+}
+
+function airportHTML(lat, lng){
+  if(!lat || !lng || isNaN(lat) || isNaN(lng)) return '';
+  if(typeof AIRPORTS === 'undefined' || AIRPORTS.length === 0) return '';
+  var nearest = nearestAirports(lat, lng, 3);
+  return '<div style="background:#e8f4fd;border-radius:8px;padding:10px 12px;margin-bottom:10px">'
+    +'<div style="font-size:10px;color:#1565c0;font-weight:700;margin-bottom:6px">✈️ 가까운 공항</div>'
+    +nearest.map(function(n){
+      return '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">'
+        +'<span>'+n.airport.name+' ('+n.airport.code+')</span>'
+        +'<span style="font-weight:700;color:#1565c0">약 '+n.dist+'km</span>'
+        +'</div>';
+    }).join('')
+    +'</div>';
+}
+
+updateFavUI();render();
+
+
+
+
+function callRyokan(phone){
+  window.location.href='tel:'+phone;
+}
+
+function searchRyokan(name){
+  window.open('https://www.google.com/search?q='+encodeURIComponent(name+' 료칸 예약'),'_blank');
+}
+
+
+updateFavUI();render();
+
+function setRyokanFilter(type,btn){
+  curRF=type;
+  document.querySelectorAll('#ryokanView .fb').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  renderRyokan();
+}
+function pClass(p){
+  return p==='저렴'?'price-low':p==='중급'?'price-mid':p==='고급'?'price-high':'price-premium';
+}
+function ryokanCard(r){
+  const rc=RC[r.region]||{name:r.region,color:'#555'};
+  var phoneId=r.id; var phone=r.phone&&r.phone!='문의 필요'?'<button class="btn-info" style="flex:1" onclick="callRyokan('+r.id+')">📞 전화</button>':'<button class="btn-info" style="flex:1;background:#aaa;cursor:default">📞 문의 필요</button>';
+  var search='<button class="btn-call" onclick="searchRyokan('+r.id+')">🔍 검색</button>';
+  return '<div class="card" style="border-left:3px solid #8B4513">'+
+    '<div class="card-main">'+
+    '<div class="card-rank" style="background:#FFF3E0;color:#8B4513;font-size:16px">🏯</div>'+
+    '<div class="card-body">'+
+    '<div class="card-name">'+r.name+'</div>'+
+    '<div class="card-jp">'+r.nameJp+'</div>'+
+    '<div class="ryokan-feature">✦ '+r.feature+'</div>'+
+    '<div class="card-meta"><span>📍 '+r.address+'</span></div>'+
+    '<div class="card-tags">'+
+    '<span class="tag td" style="background:'+rc.color+'18;color:'+rc.color+'">'+rc.name+'</span>'+
+    '<span class="price-badge '+pClass(r.price)+'">'+r.price+'</span>'+
+    r.tags.map(t=>'<span class="tag td">'+t+'</span>').join('')+
+    '</div></div>'+
+    '<div class="card-right">'+
+    '<div class="rating-n"><span class="rating-s">★</span>'+r.rating+'</div>'+
+    '<div class="rating-c">('+r.count.toLocaleString()+')</div>'+
+    '</div></div>'+
+    '<div style="padding:0 15px 14px">'+
+    '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">'+r.desc+'</div></div>'+
+    '<div style="display:flex;gap:8px">'+phone+search+'</div></div></div>';
+}
+function renderRyokan(){
+  const list=curRF==='all'?RYOKANS:RYOKANS.filter(r=>r.region===curRF);
+  document.getElementById('ryokanCount').textContent=list.length+'개 료칸';
+  document.getElementById('ryokanList').innerHTML=list.map(r=>ryokanCard(r)).join('');
+}
+
+</script>
+</body>
+</html>
