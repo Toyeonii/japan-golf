@@ -535,6 +535,7 @@ function cardHTML(c,i){
     '<div class="dc"><div class="dl">홀수/파수</div><div class="dv">'+c.holes+'홀 Par'+c.par+'</div></div>'+
     '<div class="dc"><div class="dl">그린피</div><div class="dv">¥'+c.fee+'</div></div>'+
     '</div>'+
+    airportHTML(c.lat, c.lng)+
     '<div class="hbox"><div class="hl">📋 코스 소개</div><div class="ht">'+c.desc+'</div></div>'+
     '<div class="tbox"><div class="tl">💡 방문 팁</div><div class="tt">'+c.tips+'</div></div>'+
     '<div class="card-actions">'+
@@ -728,6 +729,8 @@ function openRyokanPanel(id){
     +'<div style="margin-bottom:10px">'
     +'<span style="background:#FFF3E0;color:#8B4513;font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px">✦ '+r.feature+'</span>'
     +'</div>'
+    +airportHTML(c.lat, c.lng)
+    +airportHTML(r.lat, r.lng)
     +'<div class="panel-ig">'
     +'<div class="pi"><div class="pil">요금 수준</div><div class="piv">'+r.price+'</div></div>'
     +'<div class="pi"><div class="pil">📞 전화</div><div class="piv">'+(r.phone!=='문의 필요'?r.phone:'문의 필요')+'</div></div>'
@@ -891,6 +894,37 @@ function showAirports(){
 function hideAirports(){
   airportMarkers.forEach(function(m){ m.remove(); });
   airportMarkers = [];
+}
+
+
+// ── 거리 계산 (Haversine) ──
+function calcDist(lat1, lng1, lat2, lng2){
+  var R = 6371;
+  var dLat = (lat2-lat1) * Math.PI/180;
+  var dLng = (lng2-lng1) * Math.PI/180;
+  var a = Math.sin(dLat/2)*Math.sin(dLat/2)
+    + Math.cos(lat1*Math.PI/180)*Math.cos(lat2*Math.PI/180)
+    * Math.sin(dLng/2)*Math.sin(dLng/2);
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+}
+
+function nearestAirports(lat, lng, count){
+  return AIRPORTS.map(function(a){
+    return {airport:a, dist:Math.round(calcDist(lat,lng,a.lat,a.lng))};
+  }).sort(function(a,b){ return a.dist-b.dist; }).slice(0, count||3);
+}
+
+function airportHTML(lat, lng){
+  var nearest = nearestAirports(lat, lng, 3);
+  return '<div style="background:#e8f4fd;border-radius:8px;padding:10px 12px;margin-bottom:10px">'
+    +'<div style="font-size:10px;color:#1565c0;font-weight:700;margin-bottom:6px">✈️ 가까운 공항</div>'
+    +nearest.map(function(n){
+      return '<div style="display:flex;justify-content:space-between;font-size:11px;margin-bottom:3px">'
+        +'<span>'+n.airport.name+' ('+n.airport.code+')</span>'
+        +'<span style="font-weight:700;color:#1565c0">약 '+n.dist+'km</span>'
+        +'</div>';
+    }).join('')
+    +'</div>';
 }
 
 updateFavUI();render();
