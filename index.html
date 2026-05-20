@@ -466,6 +466,10 @@ function updateFavUI(){
 let curFilter='all',curTab='list';
 function setFilter(type,btn){
   curFilter=type;
+  // 지도 료칸 모드일 때 curRF도 동기화
+  if(curTab==='map' && mapDisplayMode==='ryokan'){
+    curRF = type;
+  }
   document.querySelectorAll('.fb').forEach(b=>b.classList.remove('active'));
   btn.classList.add('active');
   render();
