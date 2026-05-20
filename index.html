@@ -499,7 +499,7 @@ function switchTab(tab){
     if(btn)btn.classList.toggle('active',t===tab);
   });
   document.getElementById('filtersWrap').style.display=(tab==='fav'||tab==='ryokan')?'none':'block';
-  if(tab==='map')initMap();
+  if(tab==='map'){initMap();if(map)showAirports();}
   if(tab==='fav')renderFav();
   if(tab==='ryokan')renderRyokan();
 }
@@ -569,7 +569,7 @@ function initMap(){
   map=L.map('map',{zoomControl:true}).setView([36.5,137.0],5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   map.on('zoomend',()=>{if(mapMode==='detail'&&map.getZoom()<=6)showClusters()});
-  setTimeout(()=>{map.invalidateSize();showClusters()},100);
+  setTimeout(()=>{map.invalidateSize();showClusters();showAirports();},100);
 }
 function mColor(c){
   if(c.rating>=4.4)return '#c9a84c';
