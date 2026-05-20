@@ -572,6 +572,11 @@ function mColor(c){
 }
 function setMapMode(mode){
   mapDisplayMode=mode;
+  // 지도 모드 전환 시 료칸 필터 초기화
+  curRF='all';
+  document.querySelectorAll('#ryokanView .fb').forEach(function(b){b.classList.remove('active');});
+  var allBtn=document.querySelector('#ryokanView .fb');
+  if(allBtn) allBtn.classList.add('active');
   // 토글 버튼 UI 업데이트
   document.getElementById('toggleGolf').classList.toggle('active', mode==='golf');
   document.getElementById('toggleRyokan').classList.toggle('active', mode==='ryokan');
@@ -594,9 +599,10 @@ function showClusters(){
   document.getElementById('mapBackBtn').classList.remove('show');
   document.getElementById('regionBanner').classList.remove('show');
   if(mapDisplayMode==='ryokan'){
-    // 료칸 클러스터
+    // 료칸 클러스터 (curRF 필터 적용)
+    const filteredRyokans = curRF==='all' ? RYOKANS : RYOKANS.filter(r=>r.region===curRF);
     const rgroups={};
-    RYOKANS.forEach(r=>{if(!rgroups[r.region])rgroups[r.region]={count:0};rgroups[r.region].count++});
+    filteredRyokans.forEach(r=>{if(!rgroups[r.region])rgroups[r.region]={count:0};rgroups[r.region].count++});
     Object.entries(rgroups).forEach(([region,data])=>{
       const color='#8B4513';
       const center=REGION_CENTER[region]||[36,137];
@@ -673,7 +679,7 @@ function showRyokanDetail(region){
   mapMode='detail'; curRegion=region;
   markers.forEach(m=>m.remove()); markers=[];
   closePanel();
-  const ryokans=RYOKANS.filter(r=>r.region===region);
+  const ryokans=(curRF==='all'?RYOKANS:RYOKANS.filter(r=>r.region===curRF)).filter(r=>r.region===region);
   const color='#8B4513';
   document.getElementById('mapBackBtn').classList.add('show');
   const banner=document.getElementById('regionBanner');
