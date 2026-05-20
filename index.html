@@ -499,7 +499,7 @@ function switchTab(tab){
     if(btn)btn.classList.toggle('active',t===tab);
   });
   document.getElementById('filtersWrap').style.display=(tab==='fav'||tab==='ryokan')?'none':'block';
-  if(tab==='map'){initMap();if(map)showAirports();}
+  if(tab==='map'){initMap();}
   if(tab==='fav')renderFav();
   if(tab==='ryokan')renderRyokan();
 }
@@ -566,7 +566,7 @@ function toggleCard(id){
 /* ── MAP ── */
 let map=null,markers=[],mapMode='cluster',curRegion=null,mapDisplayMode='golf';
 function initMap(){
-  if(map){updateMapMarkers();return}
+  if(map){updateMapMarkers();showAirports();return}
   map=L.map('map',{zoomControl:true}).setView([36.5,137.0],5);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',{attribution:'© OpenStreetMap contributors',maxZoom:18}).addTo(map);
   map.on('zoomend',()=>{if(mapMode==='detail'&&map.getZoom()<=6)showClusters()});
@@ -664,6 +664,7 @@ function openPanel(id){
     '<h3>'+c.name+'</h3><p>'+c.nameJp+' · '+RC[c.region].name+' · '+c.address+'</p>'+
     '<div class="panel-rat"><span class="prs">★★★★</span><span class="prn">'+c.rating+'</span><span class="prc">('+c.count.toLocaleString()+')</span></div>'+
     '</div><div class="panel-bd">'+
+    +airportHTML(c.lat, c.lng)
     '<div style="margin-bottom:10px">'+diffHTML(c.diff)+'</div>'+
     '<div class="panel-ig">'+
     '<div class="pi"><div class="pil">영업시간</div><div class="piv">'+c.hours.split('/')[0].trim()+'</div></div>'+
@@ -729,7 +730,7 @@ function openRyokanPanel(id){
     +'<div style="margin-bottom:10px">'
     +'<span style="background:#FFF3E0;color:#8B4513;font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px">✦ '+r.feature+'</span>'
     +'</div>'
-    +airportHTML(c.lat, c.lng)
+    +airportHTML(r.lat, r.lng)
     +airportHTML(r.lat, r.lng)
     +'<div class="panel-ig">'
     +'<div class="pi"><div class="pil">요금 수준</div><div class="piv">'+r.price+'</div></div>'
@@ -757,6 +758,7 @@ function openModal(id,e){
     '<div class="ig-item" style="background:#fce4ec"><div class="ig-l" style="color:#c62828">🎯 난이도</div><div class="ig-v">'+diffHTML(c.diff)+'</div></div>'+
     '<div class="ig-item" style="background:#e8f4fd"><div class="ig-l" style="color:#1565c0">📞 전화</div><div class="ig-v"><a href="tel:'+c.phone+'" style="color:#1565c0">'+c.phone+'</a></div></div>'+
     '</div>'+
+    airportHTML(c.lat, c.lng)+
     '<div class="hbox"><div class="hl">📋 코스 소개</div><div class="ht">'+c.desc+'</div></div>'+
     '<div class="tbox" style="margin:10px 0 0"><div class="tl">💡 방문 팁</div><div class="tt">'+c.tips+'</div></div>';
   document.getElementById('mActs').innerHTML=
