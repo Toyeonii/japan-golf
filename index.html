@@ -660,24 +660,25 @@ function openPanel(id){
   const c=COURSES.find(x=>x.id===id);
   const color=RC[c.region].color;
   document.getElementById('panelContent').innerHTML=
-    '<div class="panel-hd" style="background:'+color+'">'+
-    '<h3>'+c.name+'</h3><p>'+c.nameJp+' · '+RC[c.region].name+' · '+c.address+'</p>'+
-    '<div class="panel-rat"><span class="prs">★★★★</span><span class="prn">'+c.rating+'</span><span class="prc">('+c.count.toLocaleString()+')</span></div>'+
-    '</div><div class="panel-bd">'
+    '<div class="panel-hd" style="background:'+color+'">'
+    +'<h3>'+c.name+'</h3><p>'+c.nameJp+' · '+RC[c.region].name+' · '+c.address+'</p>'
+    +'<div class="panel-rat"><span class="prs">★★★★</span><span class="prn">'+c.rating+'</span><span class="prc">('+c.count.toLocaleString()+')</span></div>'
+    +'</div>'
+    +'<div class="panel-bd">'
     +airportHTML(c.lat, c.lng)
-    +'<div style="margin-bottom:10px">'+diffHTML(c.diff)+'</div>'+
-    +'<div class="panel-ig">'+
-    '<div class="pi"><div class="pil">영업시간</div><div class="piv">'+c.hours.split('/')[0].trim()+'</div></div>'+
-    '<div class="pi"><div class="pil">휴무</div><div class="piv">'+c.closed+'</div></div>'+
-    '<div class="pi"><div class="pil">전화</div><div class="piv"><a href="tel:'+c.phone+'" style="color:'+color+'">'+c.phone+'</a></div></div>'+
-    '<div class="pi"><div class="pil">한국어</div><div class="piv">'+(c.korean?'✅ 가능':'❌ 불가')+'</div></div>'+
-    '</div>'+
-    '<div class="panel-sec"><div class="panel-sec-t">📋 코스 소개</div><p>'+c.desc+'</p></div>'+
-    '<div class="panel-sec"><div class="panel-sec-t">💡 방문 팁</div><p>'+c.tips+'</p></div>'+
-    '<div class="panel-acts">'+
-    '<button class="pb1" style="background:'+color+'" onclick="openModal('+c.id+',null)">📋 상세</button>'+
-    '<button class="pb2" style="color:'+color+';border-color:'+color+'" onclick="callCourse('+c.id+',null)">📞 전화</button>'+
-    '</div></div>';
+    +'<div style="margin-bottom:10px">'+diffHTML(c.diff)+'</div>'
+    +'<div class="panel-ig">'
+    +'<div class="pi"><div class="pil">영업시간</div><div class="piv">'+c.hours.split('/')[0].trim()+'</div></div>'
+    +'<div class="pi"><div class="pil">휴무</div><div class="piv">'+c.closed+'</div></div>'
+    +'<div class="pi"><div class="pil">전화</div><div class="piv"><a href="tel:'+c.phone+'" style="color:'+color+'">'+c.phone+'</a></div></div>'
+    +'<div class="pi"><div class="pil">한국어</div><div class="piv">'+(c.korean?'✅ 가능':'❌ 불가')+'</div></div>'
+    +'</div>'
+    +'<div class="panel-sec"><div class="panel-sec-t">📋 코스 소개</div><p>'+c.desc+'</p></div>'
+    +'<div class="panel-sec"><div class="panel-sec-t">💡 방문 팁</div><p>'+c.tips+'</p></div>'
+    +'<div class="panel-acts">'
+    +'<button class="pb1" style="background:'+color+'" onclick="openModal('+c.id+',null)">📋 상세</button>'
+    +'<button class="pb2" style="color:'+color+';border-color:'+color+'" onclick="callCourse('+c.id+',null)">📞 전화</button>'
+    +'</div></div>';
   document.getElementById('mapPanel').classList.add('open');
 }
 function showRyokanDetail(region){
@@ -803,7 +804,7 @@ function pClass(p) {
 function ryokanCard(r) {
   var rc = RC[r.region] || {name: r.region, color: '#555'};
   var phoneBtn, searchBtn, tags;
-  
+
   if (r.phone && r.phone !== '문의 필요') {
     phoneBtn = '<button class="btn-info" style="flex:1" onclick="callRyokan(' + r.id + ')">📞 전화</button>';
   } else {
@@ -811,7 +812,7 @@ function ryokanCard(r) {
   }
   searchBtn = '<button class="btn-call" onclick="searchRyokan(' + r.id + ')">🔍 검색</button>';
   tags = r.tags.map(function(t){ return '<span class="tag td">' + t + '</span>'; }).join('');
-  
+
   return '<div class="card" style="border-left:3px solid #8B4513">'
     + '<div class="card-main">'
     + '<div class="card-rank" style="background:#FFF3E0;color:#8B4513;font-size:16px">🏯</div>'
@@ -829,13 +830,12 @@ function ryokanCard(r) {
     + '<div class="rating-n"><span class="rating-s">★</span>' + r.rating + '</div>'
     + '<div class="rating-c">(' + r.count.toLocaleString() + ')</div>'
     + '</div></div>'
-    + '<div style="padding:0 15px 14px">'+
+    + '<div style="padding:0 15px 14px">'
     + airportHTML(r.lat, r.lng)
     + '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">' + r.desc + '</div></div>'
     + '<div style="display:flex;gap:8px">' + phoneBtn + searchBtn + '</div>'
     + '</div></div>';
 }
-
 function renderRyokan() {
   var list = curRF === 'all' ? RYOKANS : RYOKANS.filter(function(r){ return r.region === curRF; });
   document.getElementById('ryokanCount').textContent = list.length + '개 료칸';
