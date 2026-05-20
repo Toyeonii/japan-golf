@@ -121,6 +121,8 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--g1);
 .map-toggle-btn{border:none;padding:7px 14px;font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:700;color:var(--g2);background:transparent;cursor:pointer;transition:all .15s}
 .map-toggle-btn.active{background:var(--green);color:white}
 .map-toggle-btn.active.ryokan-active{background:#8B4513}
+.airport-marker{border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;background:#1565c0;color:white;font-size:16px;box-shadow:0 2px 8px rgba(0,0,0,.4);cursor:pointer;border:2.5px solid white;transition:transform .15s}
+.airport-marker:hover{transform:scale(1.15)}
 .region-banner{position:absolute;top:12px;left:50%;transform:translateX(-50%);z-index:1001;background:white;border-radius:50px;padding:6px 16px;font-size:12px;font-family:'Noto Sans KR',sans-serif;font-weight:700;box-shadow:var(--sh);display:none;white-space:nowrap}
 .region-banner.show{display:block}
 .map-legend{position:absolute;bottom:20px;left:14px;z-index:1000;background:white;border-radius:10px;padding:10px 13px;box-shadow:var(--sh);font-size:11px}
@@ -576,11 +578,8 @@ function mColor(c){
 }
 function setMapMode(mode){
   mapDisplayMode=mode;
-  // 지도 모드 전환 시 료칸 필터 초기화
-  curRF='all';
-  document.querySelectorAll('#ryokanView .fb').forEach(function(b){b.classList.remove('active');});
-  var allBtn=document.querySelector('#ryokanView .fb');
-  if(allBtn) allBtn.classList.add('active');
+  // 료칸 모드 전환 시 현재 지역 필터 동기화 (초기화 X)
+  curRF = curFilter;
   // 토글 버튼 UI 업데이트
   document.getElementById('toggleGolf').classList.toggle('active', mode==='golf');
   document.getElementById('toggleRyokan').classList.toggle('active', mode==='ryokan');
@@ -839,6 +838,60 @@ function renderRyokan() {
 }
 
 // ── 료칸 지도 패널 ──
+
+
+// ── 공항 데이터 ──
+var AIRPORTS = [
+  {code:'NRT',name:'나리타 국제공항',nameEn:'Narita Intl',lat:35.7647,lng:140.3864,city:'도쿄'},
+  {code:'HND',name:'하네다 공항',nameEn:'Haneda Intl',lat:35.5494,lng:139.7798,city:'도쿄'},
+  {code:'KIX',name:'간사이 국제공항',nameEn:'Kansai Intl',lat:34.4269,lng:135.2440,city:'오사카'},
+  {code:'ITM',name:'이타미 공항',nameEn:'Itami Intl',lat:34.7855,lng:135.4386,city:'오사카'},
+  {code:'NGO',name:'주부 센트레아 공항',nameEn:'Chubu Centrair',lat:34.8583,lng:136.8054,city:'나고야'},
+  {code:'FUK',name:'후쿠오카 공항',nameEn:'Fukuoka Intl',lat:33.5859,lng:130.4508,city:'후쿠오카'},
+  {code:'CTS',name:'신치토세 공항',nameEn:'New Chitose Intl',lat:42.7752,lng:141.6922,city:'삿포로'},
+  {code:'OKA',name:'나하 공항',nameEn:'Naha Intl',lat:26.1958,lng:127.6461,city:'오키나와'},
+  {code:'KMJ',name:'구마모토 공항',nameEn:'Kumamoto Intl',lat:32.8373,lng:130.8554,city:'구마모토'},
+  {code:'KOJ',name:'가고시마 공항',nameEn:'Kagoshima Intl',lat:31.8034,lng:130.7194,city:'가고시마'},
+  {code:'NGS',name:'나가사키 공항',nameEn:'Nagasaki Intl',lat:32.9169,lng:129.9144,city:'나가사키'},
+  {code:'SDJ',name:'센다이 공항',nameEn:'Sendai Intl',lat:38.1397,lng:140.9170,city:'센다이'},
+  {code:'HIJ',name:'히로시마 공항',nameEn:'Hiroshima Intl',lat:34.4361,lng:132.9194,city:'히로시마'},
+  {code:'TAK',name:'다카마쓰 공항',nameEn:'Takamatsu Intl',lat:34.2141,lng:134.0155,city:'다카마쓰'},
+  {code:'KCZ',name:'고치 료마 공항',nameEn:'Kochi Ryoma Intl',lat:33.5461,lng:133.6694,city:'고치'},
+  {code:'ASJ',name:'아마미 공항',nameEn:'Amami Intl',lat:28.4308,lng:129.7125,city:'아마미'},
+  {code:'MYJ',name:'마쓰야마 공항',nameEn:'Matsuyama Intl',lat:33.8272,lng:132.7000,city:'마쓰야마'},
+  {code:'OIT',name:'오이타 공항',nameEn:'Oita Intl',lat:33.4794,lng:131.7369,city:'오이타'},
+  {code:'KKJ',name:'기타큐슈 공항',nameEn:'Kitakyushu Intl',lat:33.8459,lng:130.9786,city:'기타큐슈'},
+  {code:'KMQ',name:'고마쓰 공항',nameEn:'Komatsu Intl',lat:36.3946,lng:136.4066,city:'가나자와'},
+];
+
+var airportMarkers = [];
+
+function showAirports(){
+  airportMarkers.forEach(function(m){ m.remove(); });
+  airportMarkers = [];
+  AIRPORTS.forEach(function(a){
+    var icon = L.divIcon({
+      className:'',
+      html:'<div class="airport-marker" title="'+a.name+' ('+a.code+')">✈️</div>',
+      iconSize:[36,36], iconAnchor:[18,18]
+    });
+    var marker = L.marker([a.lat, a.lng], {icon:icon}).addTo(map);
+    marker.bindPopup(
+      '<div style="font-family:Noto Sans KR,sans-serif;min-width:140px">'
+      +'<div style="font-weight:700;font-size:13px;margin-bottom:3px">✈️ '+a.name+'</div>'
+      +'<div style="font-size:11px;color:#555;margin-bottom:2px">'+a.nameEn+'</div>'
+      +'<div style="font-size:12px;color:#1565c0;font-weight:700">'+a.code+' · '+a.city+'</div>'
+      +'</div>',
+      {maxWidth:200}
+    );
+    airportMarkers.push(marker);
+  });
+}
+
+function hideAirports(){
+  airportMarkers.forEach(function(m){ m.remove(); });
+  airportMarkers = [];
+}
 
 updateFavUI();render();
 
