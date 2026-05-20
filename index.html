@@ -131,7 +131,7 @@ body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--g1);
 .ld{width:13px;height:13px;border-radius:50%;flex-shrink:0}
 
 /* 지도 패널 */
-.map-panel{position:absolute;top:0;right:0;width:310px;height:100%;background:white;box-shadow:-4px 0 20px rgba(0,0,0,.12);z-index:1000;overflow-y:auto;transform:translateX(100%);transition:transform .3s ease}
+.map-panel{position:absolute;top:0;right:0;width:310px;height:100%;background:white;box-shadow:-4px 0 20px rgba(0,0,0,.12);z-index:1000;overflow-y:scroll;-webkit-overflow-scrolling:touch;transform:translateX(100%);transition:transform .3s ease}
 .map-panel.open{transform:translateX(0)}
 .panel-close{position:absolute;top:10px;right:10px;width:26px;height:26px;border-radius:50%;background:rgba(255,255,255,.2);border:none;font-size:14px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:white;z-index:10}
 .panel-hd{color:white;padding:16px 40px 13px 16px}
@@ -731,7 +731,6 @@ function openRyokanPanel(id){
     +'<span style="background:#FFF3E0;color:#8B4513;font-size:11px;font-weight:700;padding:4px 10px;border-radius:10px">✦ '+r.feature+'</span>'
     +'</div>'
     +airportHTML(r.lat, r.lng)
-    +airportHTML(r.lat, r.lng)
     +'<div class="panel-ig">'
     +'<div class="pi"><div class="pil">요금 수준</div><div class="piv">'+r.price+'</div></div>'
     +'<div class="pi"><div class="pil">📞 전화</div><div class="piv">'+(r.phone!=='문의 필요'?r.phone:'문의 필요')+'</div></div>'
@@ -831,6 +830,7 @@ function ryokanCard(r) {
     + '<div class="rating-c">(' + r.count.toLocaleString() + ')</div>'
     + '</div></div>'
     + '<div style="padding:0 15px 14px">'
+    + airportHTML(r.lat, r.lng)
     + '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">' + r.desc + '</div></div>'
     + '<div style="display:flex;gap:8px">' + phoneBtn + searchBtn + '</div>'
     + '</div></div>';
@@ -917,6 +917,8 @@ function nearestAirports(lat, lng, count){
 }
 
 function airportHTML(lat, lng){
+  if(!lat || !lng || isNaN(lat) || isNaN(lng)) return '';
+  if(typeof AIRPORTS === 'undefined' || AIRPORTS.length === 0) return '';
   var nearest = nearestAirports(lat, lng, 3);
   return '<div style="background:#e8f4fd;border-radius:8px;padding:10px 12px;margin-bottom:10px">'
     +'<div style="font-size:10px;color:#1565c0;font-weight:700;margin-bottom:6px">✈️ 가까운 공항</div>'
