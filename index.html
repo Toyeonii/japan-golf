@@ -2,7 +2,6 @@
 <html lang="ko">
 <head>
 <meta charset="UTF-8">
-<!-- v2.1 -->
 <meta http-equiv="Content-Security-Policy" content="default-src 'self' 'unsafe-inline' 'unsafe-eval' https: data: blob:;">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>일본 골프 가이드</title>
@@ -956,31 +955,7 @@ function setRyokanFilter(type,btn){
 function pClass(p){
   return p==='저렴'?'price-low':p==='중급'?'price-mid':p==='고급'?'price-high':'price-premium';
 }
-function ryokanCard(r){
-  const rc=RC[r.region]||{name:r.region,color:'#555'};
-  var phoneId=r.id; var phone=r.phone&&r.phone!='문의 필요'?'<button class="btn-info" style="flex:1" onclick="callRyokan('+r.id+')">📞 전화</button>':'<button class="btn-info" style="flex:1;background:#aaa;cursor:default">📞 문의 필요</button>';
-  var search='<button class="btn-call" onclick="searchRyokan('+r.id+')">🔍 검색</button>';
-  return '<div class="card" style="border-left:3px solid #8B4513">'+
-    '<div class="card-main">'+
-    '<div class="card-rank" style="background:#FFF3E0;color:#8B4513;font-size:16px">🏯</div>'+
-    '<div class="card-body">'+
-    '<div class="card-name">'+r.name+'</div>'+
-    '<div class="card-jp">'+r.nameJp+'</div>'+
-    '<div class="ryokan-feature">✦ '+r.feature+'</div>'+
-    '<div class="card-meta"><span>📍 '+r.address+'</span></div>'+
-    '<div class="card-tags">'+
-    '<span class="tag td" style="background:'+rc.color+'18;color:'+rc.color+'">'+rc.name+'</span>'+
-    '<span class="price-badge '+pClass(r.price)+'">'+r.price+'</span>'+
-    r.tags.map(t=>'<span class="tag td">'+t+'</span>').join('')+
-    '</div></div>'+
-    '<div class="card-right">'+
-    '<div class="rating-n"><span class="rating-s">★</span>'+r.rating+'</div>'+
-    '<div class="rating-c">('+r.count.toLocaleString()+')</div>'+
-    '</div></div>'+
-    '<div style="padding:0 15px 14px">'+
-    '<div class="hbox" style="margin:0 0 10px"><div class="hl">📋 소개</div><div class="ht">'+r.desc+'</div></div>'+
-    '<div style="display:flex;gap:8px">'+phone+search+'</div></div></div>';
-}
+
 function renderRyokan(){
   const list=curRF==='all'?RYOKANS:RYOKANS.filter(r=>r.region===curRF);
   document.getElementById('ryokanCount').textContent=list.length+'개 료칸';
