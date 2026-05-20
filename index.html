@@ -702,9 +702,11 @@ function openRyokanPanel(id){
   var r = RYOKANS.find(function(x){ return x.id===id; });
   if(!r) return;
   var rc=RC[r.region]||{name:r.region,color:'#555'};
-
-
-
+  var phoneBtn = r.phone && r.phone !== '문의 필요'
+    ? '<button class="pb1" style="background:#8B4513" onclick="callRyokan('+r.id+')">📞 전화</button>'
+    : '';
+  var searchBtn = '<button class="pb2" style="color:#8B4513;border-color:#8B4513;flex:1" onclick="searchRyokan('+r.id+')">🔍 검색</button>';
+  var tags = r.tags.map(function(t){ return '<span class="tag td" style="margin:2px">'+t+'</span>'; }).join('');
 
 
   document.getElementById('panelContent').innerHTML=
